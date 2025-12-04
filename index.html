@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>سجل مشاركات المدرسة</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Changa:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-1: #f8fafc;
+      --bg-2: #eef2ff;
+      --primary: #1d4ed8;
+      --primary-2: #0ea5e9;
+      --card: rgba(255, 255, 255, 0.9);
+      --text: #0f172a;
+      --muted: #475569;
+      --border: #e2e8f0;
+      --accent: #22c55e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Cairo", system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 20% 20%, #e0f2fe 0, rgba(224, 242, 254, 0) 35%),
+                  radial-gradient(circle at 80% 0%, #e8e7ff 0, rgba(232, 231, 255, 0) 28%),
+                  linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+    }
+    header {
+      max-width: 1100px;
+      margin: 0 auto 20px auto;
+      text-align: right;
+    }
+    .title {
+      font-family: "Changa", "Cairo", sans-serif;
+      font-size: 32px;
+      margin: 0 0 8px 0;
+      color: #0f172a;
+    }
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+    }
+    .panel h2 {
+      margin: 0 0 12px 0;
+      font-size: 20px;
+      color: #0f172a;
+    }
+    form .field {
+      margin-bottom: 14px;
+    }
+    label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: #0f172a;
+    }
+    input, textarea, button {
+      font-family: inherit;
+    }
+    input[type="text"], input[type="number"], textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 15px;
+      background: #fff;
+      color: var(--text);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+    textarea {
+      resize: vertical;
+      min-height: 90px;
+    }
+    .help {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 4px;
+    }
+    .grid {
+      display: grid;
+      gap: 12px;
+    }
+    .grid-2 {
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      background: #e0f2fe;
+      color: #0f172a;
+      border-radius: 999px;
+      border: 1px solid #bae6fd;
+      font-size: 13px;
+      margin: 4px 4px 0 0;
+    }
+    .pill button {
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: #0f172a;
+      font-weight: 700;
+      padding: 0 6px;
+    }
+    .flex {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 12px 16px;
+      border: none;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+    }
+    .btn-primary {
+      background: linear-gradient(120deg, var(--primary), var(--primary-2));
+      color: #fff;
+      box-shadow: 0 10px 24px rgba(14, 165, 233, 0.25);
+    }
+    .btn-secondary {
+      background: #fff;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12);
+    }
+    .btn:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+    .entries {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+    }
+    .entry-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fff;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
+      display: grid;
+      gap: 8px;
+    }
+    .entry-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .name {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .date {
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .section-title {
+      font-weight: 700;
+      font-size: 14px;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+    .text {
+      color: #0f172a;
+      line-height: 1.6;
+      font-size: 14px;
+      white-space: pre-line;
+    }
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 12px;
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      background: #fff;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .search {
+      flex: 1;
+      min-width: 200px;
+    }
+    .hidden { display: none !important; }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+    }
+    .meta-box {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+    }
+    .detail-page {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      gap: 14px;
+    }
+    .detail-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .back-btn {
+      border: 1px solid var(--border);
+      background: #fff;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    @media (max-width: 640px) {
+      body { padding: 16px; }
+      header { text-align: center; }
+      .controls { flex-direction: column; align-items: stretch; }
+      .search { width: 100%; }
+      .entry-head { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <p class="title">سجل مشاركات المدرسة</p>
+    <p class="subtitle">
+      اجمع أسماء الطلاب (باللغة العربية) مع مشاركات هذا العام والسنوات السابقة في مكان واحد مرتب. البيانات تحفظ محلياً في المتصفح.
+    </p>
+  </header>
+
+  <main>
+    <section class="panel">
+      <h2>إدخال مشاركة جديدة</h2>
+      <form id="entryForm">
+        <div class="field">
+          <label for="studentName">اسم الطالب الرباعي</label>
+          <input id="studentName" name="studentName" type="text" dir="rtl" required
+                 placeholder="مثال: محمد أحمد">
+          <div class="help">اكتب الاسم بالعربية (المقاطع حسب الحاجة).</div>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="field">
+            <label for="dob">تاريخ الميلاد</label>
+            <input id="dob" name="dob" type="date">
+            <div class="help">اختياري، يُستخدم للعرض في صفحة الطالب.</div>
+          </div>
+          <div class="field">
+            <label for="interests">اهتماماتك</label>
+            <input id="interests" name="interests" type="text" dir="rtl" placeholder="مثال: برمجة، روبوت، رياضيات">
+            <div class="help">اكتب الهوايات أو المجالات المفضلة.</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="bio">معلومات عنك</label>
+          <textarea id="bio" name="bio" dir="rtl" placeholder="اكتب نبذة قصيرة عنك (مثال: شغوف بالمسابقات العلمية)"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="currentParticipation">مشاركات هذا العام</label>
+          <textarea id="currentParticipation" name="currentParticipation" dir="rtl" required
+                    placeholder="مثال: مسابقة بيبراس – فريق النجوم"></textarea>
+          <div class="help">يمكن كتابة أكثر من مشاركة كلٌ في سطر جديد.</div>
+        </div>
+
+        <div class="field">
+          <label>مشاركات السنوات السابقة</label>
+          <div class="grid grid-2">
+            <div>
+              <input id="pastYear" type="number" min="2000" max="2099"
+                     placeholder="السنة (مثال: 2023)">
+            </div>
+            <div>
+              <input id="pastDescription" type="text" dir="rtl"
+                     placeholder="وصف المشاركة السابقة">
+            </div>
+          </div>
+          <div class="flex" style="margin-top:8px;">
+            <button type="button" class="btn btn-secondary" id="addPast">إضافة للسابق</button>
+            <span class="help">أضف ما تشاء من مشاركات سابقة قبل حفظ الطالب.</span>
+          </div>
+          <div id="pastList" class="flex" style="margin-top:6px;"></div>
+        </div>
+
+        <div class="flex" style="justify-content:flex-start; margin-top:14px;">
+          <button type="submit" class="btn btn-primary">حفظ المشاركة</button>
+          <button type="button" class="btn btn-secondary" id="resetForm">تفريغ الحقول</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="controls">
+        <h2 style="margin:0;">قائمة المشاركين</h2>
+        <input class="search" id="search" type="text" dir="rtl" placeholder="بحث بالاسم...">
+        <button type="button" class="btn btn-secondary" id="clearAll">مسح كل السجلات</button>
+      </div>
+      <div id="entries" class="entries"></div>
+      <div id="empty" class="empty" style="display:none;">لم تتم إضافة مشاركات بعد.</div>
+    </section>
+  </main>
+  <section id="detailPage" class="panel detail-page hidden" aria-live="polite">
+    <div class="detail-header">
+      <div>
+        <div class="name" id="detailName"></div>
+        <div class="date" id="detailCreated"></div>
+      </div>
+      <div class="flex">
+        <button type="button" class="back-btn" id="backToList">العودة للقائمة</button>
+      </div>
+    </div>
+    <div class="meta-grid">
+      <div class="meta-box">
+        <div class="section-title">تاريخ الميلاد</div>
+        <div class="text" id="detailDob"></div>
+      </div>
+      <div class="meta-box">
+        <div class="section-title">اهتمامات</div>
+        <div class="text" id="detailInterests"></div>
+      </div>
+    </div>
+    <div>
+      <div class="section-title">معلومات عن الطالب</div>
+      <div class="text" id="detailBio"></div>
+    </div>
+    <div>
+      <div class="section-title">مشاركات هذا العام</div>
+      <div class="text" id="detailCurrent"></div>
+    </div>
+    <div>
+      <div class="section-title">مشاركات السنوات السابقة</div>
+      <div class="grid" id="detailPast"></div>
+    </div>
+  </section>
+
+  <script>
+    const form = document.getElementById("entryForm");
+    const nameInput = document.getElementById("studentName");
+    const currentInput = document.getElementById("currentParticipation");
+    const pastYearInput = document.getElementById("pastYear");
+    const pastDescInput = document.getElementById("pastDescription");
+    const pastList = document.getElementById("pastList");
+    const entriesContainer = document.getElementById("entries");
+    const emptyState = document.getElementById("empty");
+    const searchInput = document.getElementById("search");
+    const clearAllButton = document.getElementById("clearAll");
+    const resetFormButton = document.getElementById("resetForm");
+    const dobInput = document.getElementById("dob");
+    const interestsInput = document.getElementById("interests");
+    const bioInput = document.getElementById("bio");
+    const detailPage = document.getElementById("detailPage");
+    const backToListBtn = document.getElementById("backToList");
+    const detailName = document.getElementById("detailName");
+    const detailCreated = document.getElementById("detailCreated");
+    const detailDob = document.getElementById("detailDob");
+    const detailInterests = document.getElementById("detailInterests");
+    const detailBio = document.getElementById("detailBio");
+    const detailCurrent = document.getElementById("detailCurrent");
+    const detailPast = document.getElementById("detailPast");
+    const mainView = document.querySelector("main");
+
+    let pastEntries = [];
+    let records = loadRecords();
+
+    function loadRecords() {
+      try {
+        const saved = localStorage.getItem("schoolParticipations");
+        return saved ? JSON.parse(saved) : [];
+      } catch (err) {
+        console.error("Failed to read localStorage", err);
+        return [];
+      }
+    }
+
+    function saveRecords() {
+      try {
+        localStorage.setItem("schoolParticipations", JSON.stringify(records));
+      } catch (err) {
+        console.error("Failed to save localStorage", err);
+      }
+    }
+
+    function formatDate(iso) {
+      const date = new Date(iso || Date.now());
+      if (Number.isNaN(date.getTime())) return "—";
+      return date.toLocaleDateString("ar", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+      });
+    }
+
+    function formatDob(value) {
+      if (!value) return "غير محدد";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "غير محدد";
+      return date.toLocaleDateString("ar", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric"
+      });
+    }
+
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function setMultiline(el, text, fallback = "—") {
+      if (!text) {
+        el.textContent = fallback;
+        return;
+      }
+      el.innerHTML = escapeHtml(text).replace(/\n/g, "<br>");
+    }
+
+    function renderPastList() {
+      pastList.innerHTML = "";
+      if (!pastEntries.length) {
+        const span = document.createElement("span");
+        span.className = "help";
+        span.textContent = "لا توجد مشاركات سابقة مضافة بعد.";
+        pastList.appendChild(span);
+        return;
+      }
+      pastEntries.forEach((item, idx) => {
+        const pill = document.createElement("div");
+        pill.className = "pill";
+        pill.innerHTML = `<strong>${item.year}</strong> — ${item.text}`;
+        const removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.textContent = "×";
+        removeBtn.title = "حذف";
+        removeBtn.addEventListener("click", () => {
+          pastEntries = pastEntries.filter((_, i) => i !== idx);
+          renderPastList();
+        });
+        pill.appendChild(removeBtn);
+        pastList.appendChild(pill);
+      });
+    }
+
+    function renderEntries(filter = "") {
+      entriesContainer.innerHTML = "";
+      const filtered = records.filter(r =>
+        (r.name || "").toLowerCase().includes(filter.toLowerCase())
+      );
+      if (!filtered.length) {
+        emptyState.style.display = "block";
+        return;
+      }
+      emptyState.style.display = "none";
+      filtered.forEach(rec => {
+        const card = document.createElement("article");
+        card.className = "entry-card";
+
+        const head = document.createElement("div");
+        head.className = "entry-head";
+        head.innerHTML = `<div class="name">${rec.name || "طالب بدون اسم"}</div><div class="date">${formatDate(rec.createdAt)}</div>`;
+        card.appendChild(head);
+
+        if (rec.interests) {
+          const interestsEl = document.createElement("div");
+          interestsEl.className = "help";
+          interestsEl.textContent = `اهتمامات: ${rec.interests}`;
+          card.appendChild(interestsEl);
+        }
+
+        const currentSec = document.createElement("div");
+        const currentText = document.createElement("div");
+        currentSec.innerHTML = `<div class="section-title">مشاركات هذا العام</div>`;
+        currentText.className = "text";
+        setMultiline(currentText, rec.current);
+        currentSec.appendChild(currentText);
+        card.appendChild(currentSec);
+
+        const previousSec = document.createElement("div");
+        previousSec.innerHTML = `<div class="section-title">مشاركات السنوات السابقة</div>`;
+        const previousList = Array.isArray(rec.previous) ? rec.previous : [];
+        if (previousList.length) {
+          const list = document.createElement("div");
+          list.className = "grid";
+          previousList.forEach(item => {
+            const pill = document.createElement("div");
+            pill.className = "pill";
+            pill.style.border = "1px solid #d9f99d";
+            pill.style.background = "#f7fee7";
+            pill.innerHTML = `<strong>${item.year}</strong> — ${escapeHtml(item.text)}`;
+            list.appendChild(pill);
+          });
+          previousSec.appendChild(list);
+        } else {
+          const span = document.createElement("div");
+          span.className = "help";
+          span.textContent = "لا توجد مشاركات سابقة.";
+          previousSec.appendChild(span);
+        }
+        card.appendChild(previousSec);
+
+        const actions = document.createElement("div");
+        actions.className = "flex";
+        const detailBtn = document.createElement("button");
+        detailBtn.type = "button";
+        detailBtn.className = "btn btn-secondary";
+        detailBtn.textContent = "عرض صفحة كاملة";
+        detailBtn.addEventListener("click", () => {
+          location.hash = `student-${rec.id}`;
+        });
+        actions.appendChild(detailBtn);
+        card.appendChild(actions);
+
+        entriesContainer.appendChild(card);
+      });
+    }
+
+    function resetFormFields() {
+      form.reset();
+      dobInput.value = "";
+      interestsInput.value = "";
+      bioInput.value = "";
+      pastEntries = [];
+      renderPastList();
+    }
+
+    function showMainView() {
+      mainView.classList.remove("hidden");
+      detailPage.classList.add("hidden");
+    }
+
+    function fillDetail(rec) {
+      const previousList = Array.isArray(rec.previous) ? rec.previous : [];
+      detailName.textContent = rec.name || "طالب بدون اسم";
+      detailCreated.textContent = `أضيفت بتاريخ ${formatDate(rec.createdAt)}`;
+      detailDob.textContent = formatDob(rec.dob);
+      detailInterests.textContent = rec.interests?.trim() || "غير محدد";
+      setMultiline(detailBio, rec.bio, "لا توجد معلومات");
+      setMultiline(detailCurrent, rec.current, "لا توجد مشاركات لهذا العام");
+      detailPast.innerHTML = "";
+      if (previousList.length) {
+        previousList.forEach(item => {
+          const pill = document.createElement("div");
+          pill.className = "pill";
+          pill.style.border = "1px solid #d9f99d";
+          pill.style.background = "#f7fee7";
+          pill.innerHTML = `<strong>${item.year}</strong> — ${escapeHtml(item.text)}`;
+          detailPast.appendChild(pill);
+        });
+      } else {
+        const span = document.createElement("div");
+        span.className = "help";
+        span.textContent = "لا توجد مشاركات سابقة.";
+        detailPast.appendChild(span);
+      }
+    }
+
+    function handleHashChange() {
+      const match = window.location.hash.match(/^#?student-(\d+)/);
+      if (!match) {
+        showMainView();
+        return;
+      }
+      const id = Number(match[1]);
+      const rec = records.find(r => r.id === id);
+      if (!rec) {
+        showMainView();
+        return;
+      }
+      fillDetail(rec);
+      mainView.classList.add("hidden");
+      detailPage.classList.remove("hidden");
+      detailPage.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    document.getElementById("addPast").addEventListener("click", () => {
+      const year = pastYearInput.value.trim();
+      const text = pastDescInput.value.trim();
+      if (!year || !text) return;
+      pastEntries.push({ year, text });
+      pastYearInput.value = "";
+      pastDescInput.value = "";
+      renderPastList();
+    });
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (!form.reportValidity()) return;
+      // If the user filled past fields but forgot to press "إضافة للسابق" add them now.
+      const pendingYear = pastYearInput.value.trim();
+      const pendingText = pastDescInput.value.trim();
+      if (pendingYear && pendingText) {
+        pastEntries.push({ year: pendingYear, text: pendingText });
+      }
+
+      const record = {
+        id: Date.now(),
+        name: nameInput.value.trim(),
+        current: currentInput.value.trim(),
+        dob: dobInput.value || "",
+        interests: interestsInput.value.trim(),
+        bio: bioInput.value.trim(),
+        previous: [...pastEntries],
+        createdAt: new Date().toISOString()
+      };
+      records = [record, ...records];
+      saveRecords();
+      renderEntries(searchInput.value.trim());
+      resetFormFields();
+      nameInput.focus();
+    });
+
+    resetFormButton.addEventListener("click", () => resetFormFields());
+
+    searchInput.addEventListener("input", (e) => {
+      renderEntries(e.target.value.trim());
+    });
+
+    clearAllButton.addEventListener("click", () => {
+      const sure = confirm("هل أنت متأكد من مسح كل السجلات؟");
+      if (!sure) return;
+      records = [];
+      saveRecords();
+      renderEntries(searchInput.value.trim());
+    });
+    backToListBtn.addEventListener("click", () => {
+      location.hash = "";
+      showMainView();
+    });
+    window.addEventListener("hashchange", handleHashChange);
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        location.hash = "";
+        showMainView();
+      }
+    });
+
+    // Initialize
+    renderPastList();
+    renderEntries();
+    handleHashChange();
+  </script>
+</body>
+</html>

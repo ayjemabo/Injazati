@@ -23,10 +23,8 @@
     body {
       margin: 0;
       font-family: "Cairo", system-ui, -apple-system, sans-serif;
-      background: radial-gradient(circle at 20% 20%, #e0f2fe 0, rgba(224, 242, 254, 0) 35%),
-                  radial-gradient(circle at 80% 0%, #e8e7ff 0, rgba(232, 231, 255, 0) 28%),
-                  linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
-      color: var(--text);
+      background: rgb(18, 37, 55);
+      color: #e2e8f0;
       min-height: 100vh;
       padding: 24px;
     }
@@ -34,16 +32,37 @@
       max-width: 1100px;
       margin: 0 auto 20px auto;
       text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+    .logo {
+      width: 120px;
+      height: 120px;
+      border-radius: 16px;
+      object-fit: contain;
+      border: none;
+      box-shadow: none;
+      background: transparent;
+      padding: 2px;
+      -webkit-mask-image: radial-gradient(circle, #000 78%, transparent 100%);
+      mask-image: radial-gradient(circle, #000 78%, transparent 100%);
     }
     .title {
       font-family: "Changa", "Cairo", sans-serif;
       font-size: 32px;
       margin: 0 0 8px 0;
-      color: #0f172a;
+      color: #e2e8f0;
     }
     .subtitle {
       margin: 0;
-      color: var(--muted);
+      color: #cbd5e1;
       line-height: 1.6;
     }
     main {
@@ -274,13 +293,16 @@
     }
   </style>
 </head>
-<body>
-  <header>
-    <p class="title">سجل مشاركات المدرسة</p>
-    <p class="subtitle">
-      اجمع أسماء الطلاب (باللغة العربية) مع مشاركات هذا العام والسنوات السابقة في مكان واحد مرتب. البيانات تحفظ محلياً في المتصفح.
-    </p>
-  </header>
+  <body>
+    <header>
+      <div class="brand">
+        <img class="logo" src="images/logo.png" alt="شعار المدرسة">
+      </div>
+      <p class="title">سجل مشاركات المدرسة</p>
+      <p class="subtitle">
+        اجمع أسماء الطلاب (باللغة العربية) مع مشاركات هذا العام والسنوات السابقة في مكان واحد مرتب. البيانات تحفظ محلياً في المتصفح.
+      </p>
+    </header>
 
   <main>
     <section class="panel">

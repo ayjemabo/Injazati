@@ -318,11 +318,8 @@
         <div class="grid grid-2">
           <div class="field">
             <label for="school">المدرسة</label>
-            <select id="school" name="school" required>
-              <option value="">اختر المدرسة</option>
-              <option value="البلد الأمين المتوسطة">البلد الأمين المتوسطة</option>
-              <option value="بكة الثانوية">بكة الثانوية</option>
-            </select>
+            <input id="school" name="school" type="text" dir="rtl" required placeholder="اكتب اسم المدرسة بحرية">
+            <div class="help">يمكن كتابة أي اسم مدرسة.</div>
           </div>
           <div class="field">
             <label>الصف</label>
@@ -338,6 +335,12 @@
                 <option value="1">١</option>
                 <option value="2">٢</option>
                 <option value="3">٣</option>
+                <option value="4">٤</option>
+                <option value="5">٥</option>
+                <option value="6">٦</option>
+                <option value="7">٧</option>
+                <option value="8">٨</option>
+                <option value="9">٩</option>
               </select>
             </div>
             <div class="help">مثال: أول / ٣ أو ثاني / ٢.</div>
@@ -823,28 +826,10 @@
       detailPage.classList.add("hidden");
     }
 
-    function updateClassOptions() {
-      const school = schoolSelect.value;
-      const isBakkah = school === "بكة الثانوية";
-      const maxClass = isBakkah ? 9 : 3;
-      const current = gradeClassSelect.value;
-      gradeClassSelect.innerHTML = '<option value="">الشعبة</option>';
-      for (let i = 1; i <= maxClass; i++) {
-        const opt = document.createElement("option");
-        opt.value = String(i);
-        opt.textContent = i.toString();
-        gradeClassSelect.appendChild(opt);
-      }
-      if (current && Number(current) <= maxClass) {
-        gradeClassSelect.value = current;
-      }
-    }
-
     function startEdit(rec) {
       editingId = rec.id;
       nameInput.value = rec.name || "";
       schoolSelect.value = rec.school || "";
-      updateClassOptions();
       gradeYearSelect.value = rec.gradeYear || "";
       gradeClassSelect.value = rec.gradeClass || "";
       dobInput.value = rec.dob || "";
@@ -1006,7 +991,6 @@
     });
 
     resetFormButton.addEventListener("click", () => resetFormFields());
-    schoolSelect.addEventListener("change", updateClassOptions);
 
     searchInput.addEventListener("input", (e) => {
       renderEntries(e.target.value.trim());
@@ -1037,7 +1021,6 @@
 
     // Initialize
     renderPastList();
-    updateClassOptions();
     initRecords();
   </script>
 </body>

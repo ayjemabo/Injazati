@@ -367,7 +367,7 @@
         </div>
 
         <div class="flex" style="justify-content:flex-start; margin-top:14px;">
-          <button type="submit" class="btn btn-primary">حفظ المشاركة</button>
+          <button type="submit" class="btn btn-primary" id="saveBtn">حفظ المشاركة</button>
           <button type="button" class="btn btn-secondary" id="resetForm">تفريغ الحقول</button>
         </div>
       </form>
@@ -444,6 +444,7 @@
     const dobInput = document.getElementById("dob");
     const interestsInput = document.getElementById("interests");
     const bioInput = document.getElementById("bio");
+    const saveBtn = document.getElementById("saveBtn");
     const detailPage = document.getElementById("detailPage");
     const backToListBtn = document.getElementById("backToList");
     const detailName = document.getElementById("detailName");
@@ -459,10 +460,21 @@
 
     let pastEntries = [];
     let records = [];
+    let editingId = null;
 
     const SUPABASE_URL = "https://qsebgpnqiwkhipxionyf.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzZWJncG5xaXdraGlweGlvbnlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ4NjAyMTAsImV4cCI6MjA4MDQzNjIxMH0.T2V1ZetdrGvZ5fNSZVBGY52FyQ0YkCgsnWE-SjUXVig";
+    const OWNER_ID = getOwnerId();
     let supabaseClient = null;
+
+    function getOwnerId() {
+      const KEY = "schoolParticipationsOwner";
+      const existing = localStorage.getItem(KEY);
+      if (existing) return existing;
+      const fresh = crypto.randomUUID ? crypto.randomUUID() : `owner-${Date.now()}-${Math.random()}`;
+      localStorage.setItem(KEY, fresh);
+      return fresh;
+    }
 
     function setupSupabase() {
       const hasSupabaseLib = typeof window.supabase !== "undefined";
@@ -555,6 +567,7 @@
         school: row.school || "",
         gradeYear: row.grade_year ?? row.gradeYear ?? row.grade ?? null,
         gradeClass: row.grade_class ?? row.gradeClass ?? null,
+        ownerId: row.owner_id ?? row.ownerId ?? null,
         previous: Array.isArray(row.previous) ? row.previous : [],
         createdAt: row.createdAt || row.created_at || new Date().toISOString()
       };
@@ -579,7 +592,8 @@
         ...record,
         created_at: record.createdAt,
         grade_year: record.gradeYear,
-        grade_class: record.gradeClass
+        grade_class: record.gradeClass,
+        owner_id: OWNER_ID
       };
       delete payload.id;
       delete payload.gradeYear;
@@ -598,12 +612,57 @@
       return normalizeRecord(data);
     }
 
+    async function updateRemoteRecord(record) {
+      if (!isSupabaseReady()) return null;
+      const payload = {
+        ...record,
+        grade_year: record.gradeYear,
+        grade_class: record.gradeClass,
+        created_at: record.createdAt,
+        owner_id: OWNER_ID
+      };
+      delete payload.gradeYear;
+      delete payload.gradeClass;
+      delete payload.createdAt;
+      const { data, error } = await supabaseClient
+        .from("participants")
+        .update(payload)
+        .eq("id", record.id)
+        .eq("owner_id", OWNER_ID)
+        .select()
+        .single();
+      if (error) {
+        console.error("Supabase update error:", error.message);
+        alert("تعذر التحديث على السيرفر (تحقق من الصلاحيات/المالك).");
+        return null;
+      }
+      return normalizeRecord(data);
+    }
+
     async function deleteAllRemoteRecords() {
       if (!isSupabaseReady()) return null;
-      const { error } = await supabaseClient.from("participants").delete().neq("id", -1);
+      const { error } = await supabaseClient
+        .from("participants")
+        .delete()
+        .eq("owner_id", OWNER_ID);
       if (error) {
         console.error("Supabase delete error:", error.message);
         alert("تعذر مسح السجلات من السيرفر.");
+        return false;
+      }
+      return true;
+    }
+
+    async function deleteRemoteRecord(id) {
+      if (!isSupabaseReady()) return null;
+      const { error } = await supabaseClient
+        .from("participants")
+        .delete()
+        .eq("id", id)
+        .eq("owner_id", OWNER_ID);
+      if (error) {
+        console.error("Supabase delete error:", error.message);
+        alert("تعذر حذف السجل من السيرفر (تحقق من الصلاحيات/المالك).");
         return false;
       }
       return true;
@@ -703,6 +762,23 @@
           location.hash = `student-${rec.id}`;
         });
         actions.appendChild(detailBtn);
+
+        if (!rec.ownerId || rec.ownerId === OWNER_ID) {
+          const editBtn = document.createElement("button");
+          editBtn.type = "button";
+          editBtn.className = "btn btn-primary";
+          editBtn.textContent = "تعديل";
+          editBtn.addEventListener("click", () => startEdit(rec));
+          actions.appendChild(editBtn);
+
+          const deleteBtn = document.createElement("button");
+          deleteBtn.type = "button";
+          deleteBtn.className = "btn btn-secondary";
+          deleteBtn.textContent = "حذف";
+          deleteBtn.addEventListener("click", () => deleteRecord(rec.id, rec.ownerId));
+          actions.appendChild(deleteBtn);
+        }
+
         card.appendChild(actions);
 
         entriesContainer.appendChild(card);
@@ -715,12 +791,68 @@
       interestsInput.value = "";
       bioInput.value = "";
       pastEntries = [];
+      editingId = null;
+      saveBtn.textContent = "حفظ المشاركة";
       renderPastList();
     }
 
     function showMainView() {
       mainView.classList.remove("hidden");
       detailPage.classList.add("hidden");
+    }
+
+    function updateClassOptions() {
+      const school = schoolSelect.value;
+      const isBakkah = school === "بكة الثانوية";
+      const maxClass = isBakkah ? 9 : 3;
+      const current = gradeClassSelect.value;
+      gradeClassSelect.innerHTML = '<option value="">الشعبة</option>';
+      for (let i = 1; i <= maxClass; i++) {
+        const opt = document.createElement("option");
+        opt.value = String(i);
+        opt.textContent = i.toString();
+        gradeClassSelect.appendChild(opt);
+      }
+      if (current && Number(current) <= maxClass) {
+        gradeClassSelect.value = current;
+      }
+    }
+
+    function startEdit(rec) {
+      editingId = rec.id;
+      nameInput.value = rec.name || "";
+      schoolSelect.value = rec.school || "";
+      updateClassOptions();
+      gradeYearSelect.value = rec.gradeYear || "";
+      gradeClassSelect.value = rec.gradeClass || "";
+      dobInput.value = rec.dob || "";
+      interestsInput.value = rec.interests || "";
+      bioInput.value = rec.bio || "";
+      currentInput.value = rec.current || "";
+      pastEntries = Array.isArray(rec.previous) ? [...rec.previous] : [];
+      renderPastList();
+      saveBtn.textContent = "تحديث المشاركة";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    async function deleteRecord(id, ownerId) {
+      if (ownerId && ownerId !== OWNER_ID) {
+        alert("لا يمكنك حذف سجل ليس لك.");
+        return;
+      }
+      const sure = confirm("حذف هذا السجل؟");
+      if (!sure) return;
+      if (isSupabaseReady()) {
+        const ok = await deleteRemoteRecord(id);
+        if (!ok) return;
+      }
+      records = records.filter(r => r.id !== id);
+      saveLocalRecords();
+      renderEntries(searchInput.value.trim());
+      if (window.location.hash === `#student-${id}`) {
+        location.hash = "";
+        showMainView();
+      }
     }
 
     function fillDetail(rec) {
@@ -804,8 +936,8 @@
         pastEntries.push({ year: pendingYear, text: pendingText });
       }
 
-      const record = {
-        id: Date.now(),
+      const baseRecord = {
+        id: editingId || Date.now(),
         name: nameInput.value.trim(),
         current: currentInput.value.trim(),
         dob: dobInput.value || "",
@@ -815,18 +947,36 @@
         gradeYear: gradeYearSelect.value,
         gradeClass: gradeClassSelect.value,
         previous: [...pastEntries],
-        createdAt: new Date().toISOString()
+        createdAt: editingId ? (records.find(r => r.id === editingId)?.createdAt || new Date().toISOString()) : new Date().toISOString(),
+        ownerId: OWNER_ID
       };
-      if (isSupabaseReady()) {
-        const saved = await insertRemoteRecord(record);
-        if (saved) {
-          records = [saved, ...records];
+
+      if (editingId) {
+        // Update existing
+        if (isSupabaseReady()) {
+          const updated = await updateRemoteRecord(baseRecord);
+          if (updated) {
+            records = records.map(r => r.id === editingId ? updated : r);
+          } else {
+            records = records.map(r => r.id === editingId ? baseRecord : r);
+          }
         } else {
-          records = [record, ...records];
+          records = records.map(r => r.id === editingId ? baseRecord : r);
         }
       } else {
-        records = [record, ...records];
+        // New insert
+        if (isSupabaseReady()) {
+          const saved = await insertRemoteRecord(baseRecord);
+          if (saved) {
+            records = [saved, ...records];
+          } else {
+            records = [baseRecord, ...records];
+          }
+        } else {
+          records = [baseRecord, ...records];
+        }
       }
+
       saveLocalRecords();
       renderEntries(searchInput.value.trim());
       resetFormFields();
@@ -834,6 +984,7 @@
     });
 
     resetFormButton.addEventListener("click", () => resetFormFields());
+    schoolSelect.addEventListener("change", updateClassOptions);
 
     searchInput.addEventListener("input", (e) => {
       renderEntries(e.target.value.trim());
@@ -846,7 +997,7 @@
         const ok = await deleteAllRemoteRecords();
         if (!ok) return;
       }
-      records = [];
+      records = records.filter(r => r.ownerId && r.ownerId !== OWNER_ID);
       saveLocalRecords();
       renderEntries(searchInput.value.trim());
     });
@@ -864,6 +1015,7 @@
 
     // Initialize
     renderPastList();
+    updateClassOptions();
     initRecords();
   </script>
 </body>

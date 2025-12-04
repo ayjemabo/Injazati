@@ -97,6 +97,15 @@
       resize: vertical;
       min-height: 90px;
     }
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      font-size: 15px;
+      color: var(--text);
+    }
     .help {
       color: var(--muted);
       font-size: 13px;
@@ -286,6 +295,35 @@
 
         <div class="grid grid-2">
           <div class="field">
+            <label for="school">المدرسة</label>
+            <select id="school" name="school" required>
+              <option value="">اختر المدرسة</option>
+              <option value="البلد الأمين المتوسطة">البلد الأمين المتوسطة</option>
+              <option value="بكة الثانوية">بكة الثانوية</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>الصف</label>
+            <div class="grid grid-2">
+              <select id="gradeYear" name="gradeYear" required>
+                <option value="">السنة</option>
+                <option value="1">أول</option>
+                <option value="2">ثاني</option>
+                <option value="3">ثالث</option>
+              </select>
+              <select id="gradeClass" name="gradeClass" required>
+                <option value="">الشعبة</option>
+                <option value="1">١</option>
+                <option value="2">٢</option>
+                <option value="3">٣</option>
+              </select>
+            </div>
+            <div class="help">مثال: أول / ٣ أو ثاني / ٢.</div>
+          </div>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="field">
             <label for="dob">تاريخ الميلاد</label>
             <input id="dob" name="dob" type="date">
             <div class="help">اختياري، يُستخدم للعرض في صفحة الطالب.</div>
@@ -361,8 +399,16 @@
         <div class="text" id="detailDob"></div>
       </div>
       <div class="meta-box">
+        <div class="section-title">المدرسة</div>
+        <div class="text" id="detailSchool"></div>
+      </div>
+      <div class="meta-box">
         <div class="section-title">اهتمامات</div>
         <div class="text" id="detailInterests"></div>
+      </div>
+      <div class="meta-box">
+        <div class="section-title">الصف</div>
+        <div class="text" id="detailGrade"></div>
       </div>
     </div>
     <div>
@@ -383,6 +429,9 @@
   <script>
     const form = document.getElementById("entryForm");
     const nameInput = document.getElementById("studentName");
+    const schoolSelect = document.getElementById("school");
+    const gradeYearSelect = document.getElementById("gradeYear");
+    const gradeClassSelect = document.getElementById("gradeClass");
     const currentInput = document.getElementById("currentParticipation");
     const pastYearInput = document.getElementById("pastYear");
     const pastDescInput = document.getElementById("pastDescription");
@@ -401,6 +450,8 @@
     const detailCreated = document.getElementById("detailCreated");
     const detailDob = document.getElementById("detailDob");
     const detailInterests = document.getElementById("detailInterests");
+    const detailSchool = document.getElementById("detailSchool");
+    const detailGrade = document.getElementById("detailGrade");
     const detailBio = document.getElementById("detailBio");
     const detailCurrent = document.getElementById("detailCurrent");
     const detailPast = document.getElementById("detailPast");
@@ -483,6 +534,15 @@
       el.innerHTML = escapeHtml(text).replace(/\n/g, "<br>");
     }
 
+    function formatGrade(year, klass) {
+      const yearMap = { 1: "أول", 2: "ثاني", 3: "ثالث" };
+      const y = Number(year);
+      const k = Number(klass);
+      if (!yearMap[y] && !k) return "غير محدد";
+      const kLabel = k ? ` / ${k}` : "";
+      return `${yearMap[y] || "غير محدد"}${kLabel}`;
+    }
+
     function normalizeRecord(row) {
       if (!row) return null;
       return {
@@ -492,6 +552,9 @@
         dob: row.dob || "",
         interests: row.interests || "",
         bio: row.bio || "",
+        school: row.school || "",
+        gradeYear: row.grade_year ?? row.gradeYear ?? row.grade ?? null,
+        gradeClass: row.grade_class ?? row.gradeClass ?? null,
         previous: Array.isArray(row.previous) ? row.previous : [],
         createdAt: row.createdAt || row.created_at || new Date().toISOString()
       };
@@ -512,8 +575,15 @@
 
     async function insertRemoteRecord(record) {
       if (!isSupabaseReady()) return null;
-      const payload = { ...record, created_at: record.createdAt };
+      const payload = {
+        ...record,
+        created_at: record.createdAt,
+        grade_year: record.gradeYear,
+        grade_class: record.gradeClass
+      };
       delete payload.id;
+      delete payload.gradeYear;
+      delete payload.gradeClass;
       delete payload.createdAt;
       const { data, error } = await supabaseClient
         .from("participants")
@@ -584,12 +654,13 @@
         head.innerHTML = `<div class="name">${rec.name || "طالب بدون اسم"}</div><div class="date">${formatDate(rec.createdAt)}</div>`;
         card.appendChild(head);
 
-        if (rec.interests) {
-          const interestsEl = document.createElement("div");
-          interestsEl.className = "help";
-          interestsEl.textContent = `اهتمامات: ${rec.interests}`;
-          card.appendChild(interestsEl);
-        }
+        const metaLine = document.createElement("div");
+        metaLine.className = "help";
+        const schoolText = rec.school ? `المدرسة: ${rec.school}` : "المدرسة: غير محدد";
+        const gradeText = `الصف: ${formatGrade(rec.gradeYear, rec.gradeClass)}`;
+        const interestsText = rec.interests ? `اهتمامات: ${rec.interests}` : "";
+        metaLine.textContent = [schoolText, gradeText, interestsText].filter(Boolean).join(" • ");
+        card.appendChild(metaLine);
 
         const currentSec = document.createElement("div");
         const currentText = document.createElement("div");
@@ -657,6 +728,8 @@
       detailName.textContent = rec.name || "طالب بدون اسم";
       detailCreated.textContent = `أضيفت بتاريخ ${formatDate(rec.createdAt)}`;
       detailDob.textContent = formatDob(rec.dob);
+      detailSchool.textContent = rec.school || "غير محدد";
+      detailGrade.textContent = formatGrade(rec.gradeYear, rec.gradeClass);
       detailInterests.textContent = rec.interests?.trim() || "غير محدد";
       setMultiline(detailBio, rec.bio, "لا توجد معلومات");
       setMultiline(detailCurrent, rec.current, "لا توجد مشاركات لهذا العام");
@@ -738,6 +811,9 @@
         dob: dobInput.value || "",
         interests: interestsInput.value.trim(),
         bio: bioInput.value.trim(),
+        school: schoolSelect.value,
+        gradeYear: gradeYearSelect.value,
+        gradeClass: gradeClassSelect.value,
         previous: [...pastEntries],
         createdAt: new Date().toISOString()
       };

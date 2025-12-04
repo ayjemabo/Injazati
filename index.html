@@ -322,6 +322,15 @@
             <div class="help">يمكن كتابة أي اسم مدرسة.</div>
           </div>
           <div class="field">
+            <label for="level">المرحلة</label>
+            <select id="level" name="level" required>
+              <option value="">اختر المرحلة</option>
+              <option value="ابتدائي">ابتدائي</option>
+              <option value="متوسط">متوسط</option>
+              <option value="ثانوي">ثانوي</option>
+            </select>
+          </div>
+          <div class="field">
             <label>الصف</label>
             <div class="grid grid-2">
               <select id="gradeYear" name="gradeYear" required>
@@ -431,6 +440,10 @@
         <div class="text" id="detailSchool"></div>
       </div>
       <div class="meta-box">
+        <div class="section-title">المرحلة</div>
+        <div class="text" id="detailLevel"></div>
+      </div>
+      <div class="meta-box">
         <div class="section-title">اهتمامات</div>
         <div class="text" id="detailInterests"></div>
       </div>
@@ -458,6 +471,7 @@
     const form = document.getElementById("entryForm");
     const nameInput = document.getElementById("studentName");
     const schoolSelect = document.getElementById("school");
+    const levelSelect = document.getElementById("level");
     const gradeYearSelect = document.getElementById("gradeYear");
     const gradeClassSelect = document.getElementById("gradeClass");
     const currentInput = document.getElementById("currentParticipation");
@@ -481,6 +495,7 @@
     const detailInterests = document.getElementById("detailInterests");
     const detailSchool = document.getElementById("detailSchool");
     const detailGrade = document.getElementById("detailGrade");
+    const detailLevel = document.getElementById("detailLevel");
     const detailBio = document.getElementById("detailBio");
     const detailCurrent = document.getElementById("detailCurrent");
     const detailPast = document.getElementById("detailPast");
@@ -509,7 +524,11 @@
       const urlReady = SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("YOUR_PROJECT");
       const keyReady = SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.includes("YOUR_SUPABASE_ANON_KEY");
       if (hasSupabaseLib && urlReady && keyReady) {
-        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+          global: {
+            headers: { "x-owner-id": OWNER_ID }
+          }
+        });
       }
       return supabaseClient;
     }
@@ -575,12 +594,17 @@
     }
 
     function formatGrade(year, klass) {
-      const yearMap = { 1: "أول", 2: "ثاني", 3: "ثالث" };
+      const yearMap = { 1: "أول", 2: "ثاني", 3: "ثالث", 4: "رابع", 5: "خامس", 6: "سادس" };
       const y = Number(year);
       const k = Number(klass);
       if (!yearMap[y] && !k) return "غير محدد";
       const kLabel = k ? ` / ${k}` : "";
       return `${yearMap[y] || "غير محدد"}${kLabel}`;
+    }
+
+    function formatLevel(level) {
+      if (!level) return "غير محدد";
+      return level;
     }
 
     function normalizeRecord(row) {
@@ -593,6 +617,7 @@
         interests: row.interests || "",
         bio: row.bio || "",
         school: row.school || "",
+        level: row.level || "",
         gradeYear: row.grade_year ?? row.gradeYear ?? row.grade ?? null,
         gradeClass: row.grade_class ?? row.gradeClass ?? null,
         ownerId: row.owner_id ?? row.ownerId ?? null,
@@ -621,12 +646,14 @@
         created_at: record.createdAt,
         grade_year: record.gradeYear,
         grade_class: record.gradeClass,
+        level: record.level,
         owner_id: OWNER_ID
       };
       delete payload.id;
       delete payload.gradeYear;
       delete payload.gradeClass;
       delete payload.createdAt;
+      delete payload.ownerId;
       const { data, error } = await supabaseClient
         .from("participants")
         .insert(payload)
@@ -646,12 +673,14 @@
         ...record,
         grade_year: record.gradeYear,
         grade_class: record.gradeClass,
+        level: record.level,
         created_at: record.createdAt,
         owner_id: OWNER_ID
       };
       delete payload.gradeYear;
       delete payload.gradeClass;
       delete payload.createdAt;
+      delete payload.ownerId;
       const { data, error } = await supabaseClient
         .from("participants")
         .update(payload)
@@ -744,9 +773,10 @@
         const metaLine = document.createElement("div");
         metaLine.className = "help";
         const schoolText = rec.school ? `المدرسة: ${rec.school}` : "المدرسة: غير محدد";
+        const levelText = `المرحلة: ${formatLevel(rec.level)}`;
         const gradeText = `الصف: ${formatGrade(rec.gradeYear, rec.gradeClass)}`;
         const interestsText = rec.interests ? `اهتمامات: ${rec.interests}` : "";
-        metaLine.textContent = [schoolText, gradeText, interestsText].filter(Boolean).join(" • ");
+        metaLine.textContent = [schoolText, levelText, gradeText, interestsText].filter(Boolean).join(" • ");
         card.appendChild(metaLine);
 
         const currentSec = document.createElement("div");
@@ -829,10 +859,29 @@
       detailPage.classList.add("hidden");
     }
 
+    function updateYearOptions() {
+      const level = levelSelect.value;
+      const maxYear = level === "ابتدائي" ? 6 : 3;
+      const current = gradeYearSelect.value;
+      gradeYearSelect.innerHTML = '<option value="">السنة</option>';
+      const labels = { 1: "أول", 2: "ثاني", 3: "ثالث", 4: "رابع", 5: "خامس", 6: "سادس" };
+      for (let i = 1; i <= maxYear; i++) {
+        const opt = document.createElement("option");
+        opt.value = String(i);
+        opt.textContent = labels[i];
+        gradeYearSelect.appendChild(opt);
+      }
+      if (current && Number(current) <= maxYear) {
+        gradeYearSelect.value = current;
+      }
+    }
+
     function startEdit(rec) {
       editingId = rec.id;
       nameInput.value = rec.name || "";
       schoolSelect.value = rec.school || "";
+      levelSelect.value = rec.level || "";
+      updateYearOptions();
       gradeYearSelect.value = rec.gradeYear || "";
       gradeClassSelect.value = rec.gradeClass || "";
       dobInput.value = rec.dob || "";
@@ -871,6 +920,7 @@
       detailCreated.textContent = `أضيفت بتاريخ ${formatDate(rec.createdAt)}`;
       detailDob.textContent = formatDob(rec.dob);
       detailSchool.textContent = rec.school || "غير محدد";
+      detailLevel.textContent = formatLevel(rec.level);
       detailGrade.textContent = formatGrade(rec.gradeYear, rec.gradeClass);
       detailInterests.textContent = rec.interests?.trim() || "غير محدد";
       setMultiline(detailBio, rec.bio, "لا توجد معلومات");
@@ -954,6 +1004,7 @@
         interests: interestsInput.value.trim(),
         bio: bioInput.value.trim(),
         school: schoolSelect.value,
+        level: levelSelect.value,
         gradeYear: gradeYearSelect.value,
         gradeClass: gradeClassSelect.value,
         previous: [...pastEntries],
@@ -994,6 +1045,7 @@
     });
 
     resetFormButton.addEventListener("click", () => resetFormFields());
+    levelSelect.addEventListener("change", updateYearOptions);
 
     searchInput.addEventListener("input", (e) => {
       renderEntries(e.target.value.trim());
@@ -1024,6 +1076,7 @@
 
     // Initialize
     renderPastList();
+    updateYearOptions();
     initRecords();
   </script>
 </body>

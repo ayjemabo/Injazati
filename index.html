@@ -379,6 +379,7 @@
     </div>
   </section>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const form = document.getElementById("entryForm");
     const nameInput = document.getElementById("studentName");
@@ -406,9 +407,27 @@
     const mainView = document.querySelector("main");
 
     let pastEntries = [];
-    let records = loadRecords();
+    let records = [];
 
-    function loadRecords() {
+    const SUPABASE_URL = "https://qsebgpnqiwkhipxionyf.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzZWJncG5xaXdraGlweGlvbnlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ4NjAyMTAsImV4cCI6MjA4MDQzNjIxMH0.T2V1ZetdrGvZ5fNSZVBGY52FyQ0YkCgsnWE-SjUXVig";
+    let supabaseClient = null;
+
+    function setupSupabase() {
+      const hasSupabaseLib = typeof window.supabase !== "undefined";
+      const urlReady = SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("YOUR_PROJECT");
+      const keyReady = SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.includes("YOUR_SUPABASE_ANON_KEY");
+      if (hasSupabaseLib && urlReady && keyReady) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+      return supabaseClient;
+    }
+
+    function isSupabaseReady() {
+      return Boolean(supabaseClient);
+    }
+
+    function loadLocalRecords() {
       try {
         const saved = localStorage.getItem("schoolParticipations");
         return saved ? JSON.parse(saved) : [];
@@ -418,7 +437,7 @@
       }
     }
 
-    function saveRecords() {
+    function saveLocalRecords() {
       try {
         localStorage.setItem("schoolParticipations", JSON.stringify(records));
       } catch (err) {
@@ -462,6 +481,62 @@
         return;
       }
       el.innerHTML = escapeHtml(text).replace(/\n/g, "<br>");
+    }
+
+    function normalizeRecord(row) {
+      if (!row) return null;
+      return {
+        id: row.id ?? row.localId ?? Date.now(),
+        name: row.name || "",
+        current: row.current || "",
+        dob: row.dob || "",
+        interests: row.interests || "",
+        bio: row.bio || "",
+        previous: Array.isArray(row.previous) ? row.previous : [],
+        createdAt: row.createdAt || row.created_at || new Date().toISOString()
+      };
+    }
+
+    async function fetchRemoteRecords() {
+      if (!isSupabaseReady()) return null;
+      const { data, error } = await supabaseClient
+        .from("participants")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) {
+        console.error("Supabase fetch error:", error.message);
+        return null;
+      }
+      return (data || []).map(normalizeRecord);
+    }
+
+    async function insertRemoteRecord(record) {
+      if (!isSupabaseReady()) return null;
+      const payload = { ...record, created_at: record.createdAt };
+      delete payload.id;
+      delete payload.createdAt;
+      const { data, error } = await supabaseClient
+        .from("participants")
+        .insert(payload)
+        .select()
+        .single();
+      if (error) {
+        console.error("Supabase insert error:", error.message);
+        alert("تعذر الحفظ للسيرفر، سيتم الحفظ محلياً مؤقتاً.");
+        return null;
+      }
+      return normalizeRecord(data);
+    }
+
+    async function deleteAllRemoteRecords() {
+      if (!isSupabaseReady()) return null;
+      const { error } = await supabaseClient.from("participants").delete().neq("id", -1);
+      if (error) {
+        console.error("Supabase delete error:", error.message);
+        alert("تعذر مسح السجلات من السيرفر.");
+        return false;
+      }
+      return true;
     }
 
     function renderPastList() {
@@ -621,6 +696,21 @@
       detailPage.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
+    async function initRecords() {
+      setupSupabase();
+      let loaded = null;
+      if (isSupabaseReady()) {
+        loaded = await fetchRemoteRecords();
+      }
+      if (!loaded) {
+        loaded = loadLocalRecords();
+      }
+      records = loaded || [];
+      saveLocalRecords();
+      renderEntries(searchInput.value.trim());
+      handleHashChange();
+    }
+
     document.getElementById("addPast").addEventListener("click", () => {
       const year = pastYearInput.value.trim();
       const text = pastDescInput.value.trim();
@@ -631,7 +721,7 @@
       renderPastList();
     });
 
-    form.addEventListener("submit", (e) => {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
       if (!form.reportValidity()) return;
       // If the user filled past fields but forgot to press "إضافة للسابق" add them now.
@@ -651,8 +741,17 @@
         previous: [...pastEntries],
         createdAt: new Date().toISOString()
       };
-      records = [record, ...records];
-      saveRecords();
+      if (isSupabaseReady()) {
+        const saved = await insertRemoteRecord(record);
+        if (saved) {
+          records = [saved, ...records];
+        } else {
+          records = [record, ...records];
+        }
+      } else {
+        records = [record, ...records];
+      }
+      saveLocalRecords();
       renderEntries(searchInput.value.trim());
       resetFormFields();
       nameInput.focus();
@@ -664,11 +763,15 @@
       renderEntries(e.target.value.trim());
     });
 
-    clearAllButton.addEventListener("click", () => {
+    clearAllButton.addEventListener("click", async () => {
       const sure = confirm("هل أنت متأكد من مسح كل السجلات؟");
       if (!sure) return;
+      if (isSupabaseReady()) {
+        const ok = await deleteAllRemoteRecords();
+        if (!ok) return;
+      }
       records = [];
-      saveRecords();
+      saveLocalRecords();
       renderEntries(searchInput.value.trim());
     });
     backToListBtn.addEventListener("click", () => {
@@ -685,8 +788,7 @@
 
     // Initialize
     renderPastList();
-    renderEntries();
-    handleHashChange();
+    initRecords();
   </script>
 </body>
 </html>

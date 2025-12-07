@@ -958,6 +958,8 @@
             moreBtn.type = "button";
             moreBtn.className = "more-link";
             moreBtn.textContent = "المزيد من المشاركات السابقة...";
+            moreBtn.style.position = "static";
+            moreBtn.style.marginTop = "6px";
             moreBtn.addEventListener("click", () => {
               location.hash = `student-${rec.id}`;
             });

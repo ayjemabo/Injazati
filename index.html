@@ -316,6 +316,35 @@
       background: radial-gradient(circle at 15% 20%, rgba(14,165,233,0.08), transparent 40%);
       pointer-events: none;
     }
+    .preview-limited {
+      position: relative;
+    }
+    .preview-limited::after {
+      content: "";
+      position: absolute;
+      inset-inline: 0;
+      bottom: 0;
+      height: 36px;
+      background: linear-gradient(180deg, rgba(241,245,249,0), rgba(241,245,249,0.95));
+      pointer-events: none;
+    }
+    .more-link {
+      position: absolute;
+      bottom: 10px;
+      inset-inline-end: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #0ea5e9;
+      font-weight: 700;
+      font-size: 12px;
+      border: none;
+      background: rgba(255,255,255,0.9);
+      border-radius: 10px;
+      padding: 5px 9px;
+      cursor: pointer;
+      box-shadow: 0 6px 14px rgba(15,23,42,0.12);
+    }
     .entry-head {
       display: flex;
       align-items: baseline;
@@ -913,8 +942,9 @@
         const previousList = Array.isArray(rec.previous) ? rec.previous : [];
         if (previousList.length) {
           const list = document.createElement("div");
+          const limited = previousList.slice(0, 5);
           list.className = "grid";
-          previousList.forEach(item => {
+          limited.forEach(item => {
             const pill = document.createElement("div");
             pill.className = "pill";
             pill.style.border = "1px solid #d9f99d";
@@ -922,6 +952,17 @@
             pill.innerHTML = `<strong>${item.year}</strong> — ${escapeHtml(item.text)}`;
             list.appendChild(pill);
           });
+          if (previousList.length > 5) {
+            list.classList.add("preview-limited");
+            const moreBtn = document.createElement("button");
+            moreBtn.type = "button";
+            moreBtn.className = "more-link";
+            moreBtn.textContent = "المزيد من المشاركات السابقة...";
+            moreBtn.addEventListener("click", () => {
+              location.hash = `student-${rec.id}`;
+            });
+            previousSec.appendChild(moreBtn);
+          }
           previousSec.appendChild(list);
         } else {
           const span = document.createElement("div");

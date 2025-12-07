@@ -352,6 +352,48 @@
       border-radius: 12px;
       background: #fff;
     }
+    .hint {
+      text-align: center;
+      color: var(--muted);
+      margin-top: 16px;
+      font-size: 14px;
+    }
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      inset-inline: 0;
+      display: flex;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 1000;
+    }
+    .toast-inner {
+      pointer-events: auto;
+      background: rgba(15, 23, 42, 0.9);
+      color: #e2e8f0;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(226,232,240,0.3);
+      box-shadow: 0 12px 26px rgba(0, 0, 0, 0.25);
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 260px;
+      justify-content: space-between;
+      animation: fadeIn 0.2s ease;
+    }
+    .toast button {
+      border: none;
+      background: rgba(255,255,255,0.12);
+      color: #e2e8f0;
+      border-radius: 10px;
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
     .controls {
       display: flex;
       gap: 10px;
@@ -496,6 +538,7 @@
           <div id="pastList" class="flex" style="margin-top:6px;"></div>
         </div>
 
+        <div class="hint" style="margin-top:8px; text-align:right;">يمكنك تعديل وحذف مشاركاتك من البطاقات مباشرة.</div>
         <div class="flex" style="justify-content:flex-start; margin-top:14px;">
           <button type="submit" class="btn btn-primary" id="saveBtn">حفظ المشاركة</button>
           <button type="button" class="btn btn-secondary" id="resetForm">تفريغ الحقول</button>
@@ -550,6 +593,13 @@
     </div>
   </section>
 
+  <div id="toast" class="toast hidden" aria-live="polite">
+    <div class="toast-inner">
+      <span id="toastMessage">تم التسليم بنجاح</span>
+      <button id="toastDismiss" type="button">إغلاق</button>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const form = document.getElementById("entryForm");
@@ -579,6 +629,9 @@
     const detailCurrent = document.getElementById("detailCurrent");
     const detailPast = document.getElementById("detailPast");
     const mainView = document.querySelector("main");
+    const toast = document.getElementById("toast");
+    const toastMessage = document.getElementById("toastMessage");
+    const toastDismiss = document.getElementById("toastDismiss");
 
     let pastEntries = [];
     let records = [];
@@ -911,6 +964,19 @@
       renderPastList();
     }
 
+    function showToast(message = "تم التسليم بنجاح") {
+      toastMessage.textContent = message;
+      toast.classList.remove("hidden");
+      let timer = setTimeout(() => {
+        toast.classList.add("hidden");
+      }, 3000);
+      const close = () => {
+        toast.classList.add("hidden");
+        clearTimeout(timer);
+      };
+      toastDismiss.onclick = close;
+    }
+
     function showMainView() {
       mainView.classList.remove("hidden");
       detailPage.classList.add("hidden");
@@ -1075,6 +1141,7 @@
       renderEntries(searchInput.value.trim());
       resetFormFields();
       nameInput.focus();
+      showToast("تم التسليم بنجاح");
     });
 
     resetFormButton.addEventListener("click", () => resetFormFields());

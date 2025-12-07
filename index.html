@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>سجل مشاركات المدرسة</title>
+  <title>إنجازاتي</title>
+  <link rel="icon" type="image/png" href="images/logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Changa:wght@500;700&display=swap" rel="stylesheet">
@@ -298,9 +299,9 @@
       <div class="brand">
         <img class="logo" src="images/logo.png" alt="شعار المدرسة">
       </div>
-      <p class="title">سجل مشاركات المدرسة</p>
+      <p class="title">إنجازاتي</p>
       <p class="subtitle">
-        اجمع أسماء الطلاب (باللغة العربية) مع مشاركات هذا العام والسنوات السابقة في مكان واحد مرتب. البيانات تحفظ محلياً في المتصفح.
+        اجمع أسماء الطلاب (باللغة العربية) مع مشاركات هذا العام والسنوات السابقة في مكان واحد مرتب.
       </p>
     </header>
 
@@ -318,17 +319,11 @@
         <div class="grid grid-2">
           <div class="field">
             <label for="school">المدرسة</label>
-            <input id="school" name="school" type="text" dir="rtl" required placeholder="اكتب اسم المدرسة بحرية">
-            <div class="help">يمكن كتابة أي اسم مدرسة.</div>
-          </div>
-          <div class="field">
-            <label for="level">المرحلة</label>
-            <select id="level" name="level" required>
-              <option value="">اختر المرحلة</option>
-              <option value="ابتدائي">ابتدائي</option>
-              <option value="متوسط">متوسط</option>
-              <option value="ثانوي">ثانوي</option>
+            <select id="school" name="school" required>
+              <option value="">اختر المدرسة</option>
+              <option value="مدرسة البلد الأمين المتوسطة للموهوبين">مدرسة البلد الأمين المتوسطة للموهوبين</option>
             </select>
+            <div class="help">المدرسة المتاحة حالياً.</div>
           </div>
           <div class="field">
             <label>الصف</label>
@@ -338,21 +333,12 @@
                 <option value="1">أول</option>
                 <option value="2">ثاني</option>
                 <option value="3">ثالث</option>
-                <option value="4">رابع</option>
-                <option value="5">خامس</option>
-                <option value="6">سادس</option>
               </select>
               <select id="gradeClass" name="gradeClass" required>
                 <option value="">الشعبة</option>
                 <option value="1">١</option>
                 <option value="2">٢</option>
                 <option value="3">٣</option>
-                <option value="4">٤</option>
-                <option value="5">٥</option>
-                <option value="6">٦</option>
-                <option value="7">٧</option>
-                <option value="8">٨</option>
-                <option value="9">٩</option>
               </select>
             </div>
             <div class="help">مثال: أول / ٣ أو ثاني / ٢.</div>
@@ -360,11 +346,6 @@
         </div>
 
         <div class="grid grid-2">
-          <div class="field">
-            <label for="dob">تاريخ الميلاد</label>
-            <input id="dob" name="dob" type="date">
-            <div class="help">اختياري، يُستخدم للعرض في صفحة الطالب.</div>
-          </div>
           <div class="field">
             <label for="interests">اهتماماتك</label>
             <input id="interests" name="interests" type="text" dir="rtl" placeholder="مثال: برمجة، روبوت، رياضيات">
@@ -432,16 +413,8 @@
     </div>
     <div class="meta-grid">
       <div class="meta-box">
-        <div class="section-title">تاريخ الميلاد</div>
-        <div class="text" id="detailDob"></div>
-      </div>
-      <div class="meta-box">
         <div class="section-title">المدرسة</div>
         <div class="text" id="detailSchool"></div>
-      </div>
-      <div class="meta-box">
-        <div class="section-title">المرحلة</div>
-        <div class="text" id="detailLevel"></div>
       </div>
       <div class="meta-box">
         <div class="section-title">اهتمامات</div>
@@ -471,7 +444,6 @@
     const form = document.getElementById("entryForm");
     const nameInput = document.getElementById("studentName");
     const schoolSelect = document.getElementById("school");
-    const levelSelect = document.getElementById("level");
     const gradeYearSelect = document.getElementById("gradeYear");
     const gradeClassSelect = document.getElementById("gradeClass");
     const currentInput = document.getElementById("currentParticipation");
@@ -483,7 +455,6 @@
     const searchInput = document.getElementById("search");
     const clearAllButton = document.getElementById("clearAll");
     const resetFormButton = document.getElementById("resetForm");
-    const dobInput = document.getElementById("dob");
     const interestsInput = document.getElementById("interests");
     const bioInput = document.getElementById("bio");
     const saveBtn = document.getElementById("saveBtn");
@@ -491,11 +462,9 @@
     const backToListBtn = document.getElementById("backToList");
     const detailName = document.getElementById("detailName");
     const detailCreated = document.getElementById("detailCreated");
-    const detailDob = document.getElementById("detailDob");
     const detailInterests = document.getElementById("detailInterests");
     const detailSchool = document.getElementById("detailSchool");
     const detailGrade = document.getElementById("detailGrade");
-    const detailLevel = document.getElementById("detailLevel");
     const detailBio = document.getElementById("detailBio");
     const detailCurrent = document.getElementById("detailCurrent");
     const detailPast = document.getElementById("detailPast");
@@ -565,17 +534,6 @@
       });
     }
 
-    function formatDob(value) {
-      if (!value) return "غير محدد";
-      const date = new Date(value);
-      if (Number.isNaN(date.getTime())) return "غير محدد";
-      return date.toLocaleDateString("ar", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric"
-      });
-    }
-
     function escapeHtml(str) {
       return str
         .replace(/&/g, "&amp;")
@@ -594,17 +552,12 @@
     }
 
     function formatGrade(year, klass) {
-      const yearMap = { 1: "أول", 2: "ثاني", 3: "ثالث", 4: "رابع", 5: "خامس", 6: "سادس" };
+      const yearMap = { 1: "أول", 2: "ثاني", 3: "ثالث" };
       const y = Number(year);
       const k = Number(klass);
       if (!yearMap[y] && !k) return "غير محدد";
       const kLabel = k ? ` / ${k}` : "";
       return `${yearMap[y] || "غير محدد"}${kLabel}`;
-    }
-
-    function formatLevel(level) {
-      if (!level) return "غير محدد";
-      return level;
     }
 
     function normalizeRecord(row) {
@@ -613,11 +566,9 @@
         id: row.id ?? row.localId ?? Date.now(),
         name: row.name || "",
         current: row.current || "",
-        dob: row.dob || "",
         interests: row.interests || "",
         bio: row.bio || "",
         school: row.school || "",
-        level: row.level || "",
         gradeYear: row.grade_year ?? row.gradeYear ?? row.grade ?? null,
         gradeClass: row.grade_class ?? row.gradeClass ?? null,
         ownerId: row.owner_id ?? row.ownerId ?? null,
@@ -646,7 +597,6 @@
         created_at: record.createdAt,
         grade_year: record.gradeYear,
         grade_class: record.gradeClass,
-        level: record.level,
         owner_id: OWNER_ID
       };
       delete payload.id;
@@ -673,7 +623,6 @@
         ...record,
         grade_year: record.gradeYear,
         grade_class: record.gradeClass,
-        level: record.level,
         created_at: record.createdAt,
         owner_id: OWNER_ID
       };
@@ -773,10 +722,9 @@
         const metaLine = document.createElement("div");
         metaLine.className = "help";
         const schoolText = rec.school ? `المدرسة: ${rec.school}` : "المدرسة: غير محدد";
-        const levelText = `المرحلة: ${formatLevel(rec.level)}`;
         const gradeText = `الصف: ${formatGrade(rec.gradeYear, rec.gradeClass)}`;
         const interestsText = rec.interests ? `اهتمامات: ${rec.interests}` : "";
-        metaLine.textContent = [schoolText, levelText, gradeText, interestsText].filter(Boolean).join(" • ");
+        metaLine.textContent = [schoolText, gradeText, interestsText].filter(Boolean).join(" • ");
         card.appendChild(metaLine);
 
         const currentSec = document.createElement("div");
@@ -845,7 +793,6 @@
 
     function resetFormFields() {
       form.reset();
-      dobInput.value = "";
       interestsInput.value = "";
       bioInput.value = "";
       pastEntries = [];
@@ -859,32 +806,12 @@
       detailPage.classList.add("hidden");
     }
 
-    function updateYearOptions() {
-      const level = levelSelect.value;
-      const maxYear = level === "ابتدائي" ? 6 : 3;
-      const current = gradeYearSelect.value;
-      gradeYearSelect.innerHTML = '<option value="">السنة</option>';
-      const labels = { 1: "أول", 2: "ثاني", 3: "ثالث", 4: "رابع", 5: "خامس", 6: "سادس" };
-      for (let i = 1; i <= maxYear; i++) {
-        const opt = document.createElement("option");
-        opt.value = String(i);
-        opt.textContent = labels[i];
-        gradeYearSelect.appendChild(opt);
-      }
-      if (current && Number(current) <= maxYear) {
-        gradeYearSelect.value = current;
-      }
-    }
-
     function startEdit(rec) {
       editingId = rec.id;
       nameInput.value = rec.name || "";
       schoolSelect.value = rec.school || "";
-      levelSelect.value = rec.level || "";
-      updateYearOptions();
       gradeYearSelect.value = rec.gradeYear || "";
       gradeClassSelect.value = rec.gradeClass || "";
-      dobInput.value = rec.dob || "";
       interestsInput.value = rec.interests || "";
       bioInput.value = rec.bio || "";
       currentInput.value = rec.current || "";
@@ -918,9 +845,7 @@
       const previousList = Array.isArray(rec.previous) ? rec.previous : [];
       detailName.textContent = rec.name || "طالب بدون اسم";
       detailCreated.textContent = `أضيفت بتاريخ ${formatDate(rec.createdAt)}`;
-      detailDob.textContent = formatDob(rec.dob);
       detailSchool.textContent = rec.school || "غير محدد";
-      detailLevel.textContent = formatLevel(rec.level);
       detailGrade.textContent = formatGrade(rec.gradeYear, rec.gradeClass);
       detailInterests.textContent = rec.interests?.trim() || "غير محدد";
       setMultiline(detailBio, rec.bio, "لا توجد معلومات");
@@ -1000,11 +925,9 @@
         id: editingId || Date.now(),
         name: nameInput.value.trim(),
         current: currentInput.value.trim(),
-        dob: dobInput.value || "",
         interests: interestsInput.value.trim(),
         bio: bioInput.value.trim(),
         school: schoolSelect.value,
-        level: levelSelect.value,
         gradeYear: gradeYearSelect.value,
         gradeClass: gradeClassSelect.value,
         previous: [...pastEntries],
@@ -1045,7 +968,6 @@
     });
 
     resetFormButton.addEventListener("click", () => resetFormFields());
-    levelSelect.addEventListener("change", updateYearOptions);
 
     searchInput.addEventListener("input", (e) => {
       renderEntries(e.target.value.trim());
@@ -1076,7 +998,6 @@
 
     // Initialize
     renderPastList();
-    updateYearOptions();
     initRecords();
   </script>
 </body>

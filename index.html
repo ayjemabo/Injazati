@@ -345,6 +345,136 @@
       cursor: pointer;
       box-shadow: 0 6px 14px rgba(15,23,42,0.12);
     }
+    .folders {
+      display: grid;
+      gap: 12px;
+    }
+    .folder {
+      border: 1px solid rgba(226,232,240,0.9);
+      border-radius: 14px;
+      background: linear-gradient(180deg, #ffffff, #f8fafc);
+      box-shadow: 0 12px 26px rgba(15, 23, 42, 0.1);
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+    .folder-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .folder-title {
+      font-weight: 800;
+      color: #0f172a;
+      font-size: 18px;
+    }
+    .folder-section {
+      border: 1px dashed rgba(226,232,240,0.8);
+      border-radius: 10px;
+      padding: 10px;
+      background: rgba(248,250,252,0.7);
+      display: grid;
+      gap: 8px;
+    }
+    .folder-section h3 {
+      margin: 0;
+      font-size: 15px;
+      color: #0f172a;
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .names-list {
+      display: grid;
+      gap: 6px;
+    }
+    .name-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: #fff;
+      border: 1px solid rgba(226,232,240,0.9);
+      box-shadow: 0 4px 10px rgba(15, 23, 42, 0.06);
+    }
+    .name-row .info {
+      display: grid;
+      gap: 4px;
+    }
+    .name-row .info .name {
+      font-size: 16px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .name-row .info .meta {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .actions-inline {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .nav-list {
+      display: grid;
+      gap: 8px;
+    }
+    .nav-btn {
+      width: 100%;
+      text-align: right;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(226,232,240,0.9);
+      background: linear-gradient(90deg, rgba(14,165,233,0.15), rgba(34,197,94,0.08));
+      color: #0f172a;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+    }
+    .nav-btn span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .accordion {
+      border: 1px solid rgba(226,232,240,0.9);
+      border-radius: 14px;
+      background: linear-gradient(180deg, #ffffff, #f8fafc);
+      box-shadow: 0 12px 26px rgba(15, 23, 42, 0.1);
+      overflow: hidden;
+    }
+    .accordion-header {
+      cursor: pointer;
+      padding: 12px 14px;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(14,165,233,0.08);
+    }
+    .accordion-body {
+      padding: 12px 14px;
+      display: grid;
+      gap: 10px;
+    }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    @media (max-width: 960px) {
+      .card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px) {
+      .card-grid { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+    }
     .entry-head {
       display: flex;
       align-items: baseline;
@@ -488,9 +618,9 @@
       </p>
     </header>
 
-  <main>
-    <section class="panel">
-      <h2>إدخال مشاركة جديدة</h2>
+    <main>
+      <section class="panel">
+        <h2>إدخال مشاركة جديدة</h2>
       <form id="entryForm">
         <div class="field">
           <label for="studentName">اسم الطالب الرباعي</label>
@@ -580,6 +710,10 @@
       <div class="controls">
         <h2 style="margin:0;">قائمة المشاركين</h2>
         <input class="search" id="search" type="text" dir="rtl" placeholder="بحث بالاسم...">
+        <div class="view-toggle">
+          <button type="button" class="btn btn-secondary" id="viewAccordion">عرض مجلدات</button>
+          <button type="button" class="btn btn-secondary" id="viewAll">عرض كل البطاقات</button>
+        </div>
       </div>
       <div id="entries" class="entries"></div>
       <div id="empty" class="empty" style="display:none;">لم تتم إضافة مشاركات بعد.</div>
@@ -675,6 +809,8 @@
     let pastEntries = [];
     let records = [];
     let editingId = null;
+    let viewState = { level: "schools", school: null, year: null, classLabel: null };
+    let viewMode = "all"; // "accordion" or "all"
 
     const SUPABASE_URL = "https://qsebgpnqiwkhipxionyf.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzZWJncG5xaXdraGlweGlvbnlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ4NjAyMTAsImV4cCI6MjA4MDQzNjIxMH0.T2V1ZetdrGvZ5fNSZVBGY52FyQ0YkCgsnWE-SjUXVig";
@@ -912,99 +1048,199 @@
         return;
       }
       emptyState.style.display = "none";
+
+      const grouped = {};
       filtered.forEach(rec => {
-        const card = document.createElement("article");
-        card.className = "entry-card";
-
-        const head = document.createElement("div");
-        head.className = "entry-head";
-        head.innerHTML = `<div class="name">${rec.name || "طالب بدون اسم"}</div><div class="date">${formatDate(rec.createdAt)}</div>`;
-        card.appendChild(head);
-
-        const metaLine = document.createElement("div");
-        metaLine.className = "help";
-        const schoolText = rec.school ? `المدرسة: ${rec.school}` : "المدرسة: غير محدد";
-        const gradeText = `الصف: ${formatGrade(rec.gradeYear, rec.gradeClass)}`;
-        const interestsText = rec.interests ? `اهتمامات: ${rec.interests}` : "";
-        metaLine.textContent = [schoolText, gradeText, interestsText].filter(Boolean).join(" • ");
-        card.appendChild(metaLine);
-
-        const currentSec = document.createElement("div");
-        const currentText = document.createElement("div");
-        currentSec.innerHTML = `<div class="section-title">مشاركات هذا العام</div>`;
-        currentText.className = "text";
-        setMultiline(currentText, rec.current);
-        currentSec.appendChild(currentText);
-        card.appendChild(currentSec);
-
-        const previousSec = document.createElement("div");
-        previousSec.innerHTML = `<div class="section-title">مشاركات السنوات السابقة</div>`;
-        const previousList = Array.isArray(rec.previous) ? rec.previous : [];
-        if (previousList.length) {
-          const list = document.createElement("div");
-          const limited = previousList.slice(0, 5);
-          list.className = "grid";
-          limited.forEach(item => {
-            const pill = document.createElement("div");
-            pill.className = "pill";
-            pill.style.border = "1px solid #d9f99d";
-            pill.style.background = "#f7fee7";
-            pill.innerHTML = `<strong>${item.year}</strong> — ${escapeHtml(item.text)}`;
-            list.appendChild(pill);
-          });
-          if (previousList.length > 5) {
-            list.classList.add("preview-limited");
-            const moreBtn = document.createElement("button");
-            moreBtn.type = "button";
-            moreBtn.className = "more-link";
-            moreBtn.textContent = "المزيد من المشاركات السابقة...";
-            moreBtn.style.position = "static";
-            moreBtn.style.marginTop = "6px";
-            moreBtn.addEventListener("click", () => {
-              location.hash = `student-${rec.id}`;
-            });
-            previousSec.appendChild(moreBtn);
-          }
-          previousSec.appendChild(list);
-        } else {
-          const span = document.createElement("div");
-          span.className = "help";
-          span.textContent = "لا توجد مشاركات سابقة.";
-          previousSec.appendChild(span);
-        }
-        card.appendChild(previousSec);
-
-        const actions = document.createElement("div");
-        actions.className = "flex";
-        const detailBtn = document.createElement("button");
-        detailBtn.type = "button";
-        detailBtn.className = "btn btn-secondary";
-        detailBtn.textContent = "عرض صفحة كاملة";
-        detailBtn.addEventListener("click", () => {
-          location.hash = `student-${rec.id}`;
-        });
-        actions.appendChild(detailBtn);
-
-        if (!rec.ownerId || rec.ownerId === OWNER_ID) {
-          const editBtn = document.createElement("button");
-          editBtn.type = "button";
-          editBtn.className = "btn btn-primary";
-          editBtn.textContent = "تعديل";
-          editBtn.addEventListener("click", () => startEdit(rec));
-          actions.appendChild(editBtn);
-
-          const deleteBtn = document.createElement("button");
-          deleteBtn.type = "button";
-          deleteBtn.className = "btn btn-secondary";
-          deleteBtn.textContent = "حذف";
-          deleteBtn.addEventListener("click", () => deleteRecord(rec.id, rec.ownerId));
-          actions.appendChild(deleteBtn);
-        }
-
-        card.appendChild(actions);
-
-        entriesContainer.appendChild(card);
+        const school = rec.school || "المدرسة غير محددة";
+        const yearLabel = rec.gradeYear ? formatGrade(rec.gradeYear, rec.gradeClass).split(" / ")[0] : "السنة غير محددة";
+        const classLabel = rec.gradeClass ? `فصل ${rec.gradeClass}` : "فصل غير محدد";
+        grouped[school] ??= {};
+        grouped[school][yearLabel] ??= {};
+        grouped[school][yearLabel][classLabel] ??= [];
+        grouped[school][yearLabel][classLabel].push(rec);
       });
+
+      const wrapper = document.createElement("div");
+      wrapper.className = "folders";
+
+      const renderCards = (list) => {
+        const grid = document.createElement("div");
+        grid.className = "card-grid";
+        list.forEach(rec => {
+          const card = document.createElement("article");
+          card.className = "entry-card";
+
+          const head = document.createElement("div");
+          head.className = "entry-head";
+          head.innerHTML = `<div class="name">${rec.name || "طالب بدون اسم"}</div><div class="date">${formatDate(rec.createdAt)}</div>`;
+          card.appendChild(head);
+
+          const metaLine = document.createElement("div");
+          metaLine.className = "help";
+          const interestsText = rec.interests ? `اهتمامات: ${rec.interests}` : "";
+          metaLine.textContent = [interestsText].filter(Boolean).join(" • ");
+          card.appendChild(metaLine);
+
+          const currentSec = document.createElement("div");
+          const currentText = document.createElement("div");
+          currentSec.innerHTML = `<div class="section-title">مشاركات هذا العام</div>`;
+          currentText.className = "text";
+          setMultiline(currentText, rec.current);
+          currentSec.appendChild(currentText);
+          card.appendChild(currentSec);
+
+          const previousSec = document.createElement("div");
+          previousSec.innerHTML = `<div class="section-title">مشاركات السنوات السابقة</div>`;
+          const previousList = Array.isArray(rec.previous) ? rec.previous : [];
+          if (previousList.length) {
+            const listWrap = document.createElement("div");
+            const limited = previousList.slice(0, 5);
+            listWrap.className = "grid";
+            limited.forEach(item => {
+              const pill = document.createElement("div");
+              pill.className = "pill";
+              pill.style.border = "1px solid #d9f99d";
+              pill.style.background = "#f7fee7";
+              pill.innerHTML = `<strong>${item.year}</strong> — ${escapeHtml(item.text)}`;
+              listWrap.appendChild(pill);
+            });
+            if (previousList.length > 5) {
+              listWrap.classList.add("preview-limited");
+              const moreBtn = document.createElement("button");
+              moreBtn.type = "button";
+              moreBtn.className = "more-link";
+              moreBtn.textContent = "المزيد من المشاركات السابقة...";
+              moreBtn.style.position = "static";
+              moreBtn.style.marginTop = "6px";
+              moreBtn.addEventListener("click", () => {
+                location.hash = `student-${rec.id}`;
+              });
+              previousSec.appendChild(moreBtn);
+            }
+            previousSec.appendChild(listWrap);
+          } else {
+            const span = document.createElement("div");
+            span.className = "help";
+            span.textContent = "لا توجد مشاركات سابقة.";
+            previousSec.appendChild(span);
+          }
+          card.appendChild(previousSec);
+
+          const actions = document.createElement("div");
+          actions.className = "flex";
+          const detailBtn = document.createElement("button");
+          detailBtn.type = "button";
+          detailBtn.className = "btn btn-secondary";
+          detailBtn.textContent = "عرض صفحة كاملة";
+          detailBtn.addEventListener("click", () => {
+            location.hash = `student-${rec.id}`;
+          });
+          actions.appendChild(detailBtn);
+
+          if (!rec.ownerId || rec.ownerId === OWNER_ID) {
+            const editBtn = document.createElement("button");
+            editBtn.type = "button";
+            editBtn.className = "btn btn-primary";
+            editBtn.textContent = "تعديل";
+            editBtn.addEventListener("click", () => startEdit(rec));
+            actions.appendChild(editBtn);
+
+            const deleteBtn = document.createElement("button");
+            deleteBtn.type = "button";
+            deleteBtn.className = "btn btn-secondary";
+            deleteBtn.textContent = "حذف";
+            deleteBtn.addEventListener("click", () => deleteRecord(rec.id, rec.ownerId));
+            actions.appendChild(deleteBtn);
+          }
+
+          card.appendChild(actions);
+          grid.appendChild(card);
+        });
+        return grid;
+      };
+
+      if (viewMode === "all") {
+        const allGrid = renderCards(filtered);
+        entriesContainer.appendChild(allGrid);
+        return;
+      }
+
+      // Render based on viewState (accordion)
+      if (viewState.level === "schools") {
+        const list = document.createElement("div");
+        list.className = "nav-list";
+        Object.keys(grouped).forEach(schoolName => {
+          const btn = document.createElement("button");
+          btn.className = "nav-btn";
+          const count = Object.values(grouped[schoolName]).reduce((acc, yr) => acc + Object.values(yr).reduce((a, cls) => a + cls.length, 0), 0);
+          btn.innerHTML = `<div>${schoolName}</div><span>${count} مشارك</span>`;
+          btn.addEventListener("click", () => {
+            viewState = { level: "years", school: schoolName, year: null, classLabel: null };
+            renderEntries(filter);
+          });
+          list.appendChild(btn);
+        });
+        wrapper.appendChild(list);
+      } else if (viewState.level === "years" && grouped[viewState.school]) {
+        const back = document.createElement("button");
+        back.className = "btn btn-secondary";
+        back.textContent = "رجوع للمدارس";
+        back.addEventListener("click", () => {
+          viewState = { level: "schools", school: null, year: null, classLabel: null };
+          renderEntries(filter);
+        });
+        wrapper.appendChild(back);
+        const list = document.createElement("div");
+        list.className = "nav-list";
+        Object.keys(grouped[viewState.school]).forEach(yearLabel => {
+          const btn = document.createElement("button");
+          btn.className = "nav-btn";
+          const count = Object.values(grouped[viewState.school][yearLabel]).reduce((a, cls) => a + cls.length, 0);
+          btn.innerHTML = `<div>${yearLabel}</div><span>${count} مشارك</span>`;
+          btn.addEventListener("click", () => {
+            viewState = { level: "classes", school: viewState.school, year: yearLabel, classLabel: null };
+            renderEntries(filter);
+          });
+          list.appendChild(btn);
+        });
+        wrapper.appendChild(list);
+      } else if (viewState.level === "classes" && grouped[viewState.school]?.[viewState.year]) {
+        const back = document.createElement("button");
+        back.className = "btn btn-secondary";
+        back.textContent = "رجوع للسنوات";
+        back.addEventListener("click", () => {
+          viewState = { level: "years", school: viewState.school, year: null, classLabel: null };
+          renderEntries(filter);
+        });
+        wrapper.appendChild(back);
+        const list = document.createElement("div");
+        list.className = "nav-list";
+        Object.keys(grouped[viewState.school][viewState.year]).forEach(classLabel => {
+          const btn = document.createElement("button");
+          btn.className = "nav-btn";
+          const count = grouped[viewState.school][viewState.year][classLabel].length;
+          btn.innerHTML = `<div>${classLabel}</div><span>${count} مشارك</span>`;
+          btn.addEventListener("click", () => {
+            viewState = { level: "cards", school: viewState.school, year: viewState.year, classLabel };
+            renderEntries(filter);
+          });
+          list.appendChild(btn);
+        });
+        wrapper.appendChild(list);
+      } else if (viewState.level === "cards") {
+        const back = document.createElement("button");
+        back.className = "btn btn-secondary";
+        back.textContent = "رجوع للفصول";
+        back.addEventListener("click", () => {
+          viewState = { level: "classes", school: viewState.school, year: viewState.year, classLabel: null };
+          renderEntries(filter);
+        });
+        wrapper.appendChild(back);
+        const list = grouped[viewState.school]?.[viewState.year]?.[viewState.classLabel] || [];
+        wrapper.appendChild(renderCards(list));
+      }
+
+      entriesContainer.appendChild(wrapper);
     }
 
     function resetFormFields() {
@@ -1201,6 +1437,16 @@
 
     searchInput.addEventListener("input", (e) => {
       renderEntries(e.target.value.trim());
+    });
+
+    document.getElementById("viewAccordion").addEventListener("click", () => {
+      viewMode = "accordion";
+      viewState = { level: "schools", school: null, year: null, classLabel: null };
+      renderEntries(searchInput.value.trim());
+    });
+    document.getElementById("viewAll").addEventListener("click", () => {
+      viewMode = "all";
+      renderEntries(searchInput.value.trim());
     });
 
     backToListBtn.addEventListener("click", () => {

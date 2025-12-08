@@ -710,6 +710,11 @@
       <div class="controls">
         <h2 style="margin:0;">قائمة المشاركين</h2>
         <input class="search" id="search" type="text" dir="rtl" placeholder="بحث بالاسم...">
+        <select id="sortSelect" class="search" style="max-width:220px;">
+          <option value="newest">ترتيب: الأحدث</option>
+          <option value="oldest">ترتيب: الأقدم</option>
+          <option value="mostPrevious">ترتيب: الأكثر في السنوات السابقة</option>
+        </select>
         <div class="view-toggle">
           <button type="button" class="btn btn-secondary" id="viewAccordion">عرض مجلدات</button>
           <button type="button" class="btn btn-secondary" id="viewAll">عرض كل البطاقات</button>
@@ -787,6 +792,7 @@
     const entriesContainer = document.getElementById("entries");
     const emptyState = document.getElementById("empty");
     const searchInput = document.getElementById("search");
+    const sortSelect = document.getElementById("sortSelect");
     const resetFormButton = document.getElementById("resetForm");
     const interestsInput = document.getElementById("interests");
     const bioInput = document.getElementById("bio");
@@ -1040,9 +1046,22 @@
 
     function renderEntries(filter = "") {
       entriesContainer.innerHTML = "";
-      const filtered = records.filter(r =>
+      let filtered = records.filter(r =>
         (r.name || "").toLowerCase().includes(filter.toLowerCase())
       );
+      const sortVal = sortSelect.value;
+      filtered = filtered.slice().sort((a, b) => {
+        if (sortVal === "oldest") {
+          return new Date(a.createdAt) - new Date(b.createdAt);
+        }
+        if (sortVal === "mostPrevious") {
+          const ac = Array.isArray(a.previous) ? a.previous.length : 0;
+          const bc = Array.isArray(b.previous) ? b.previous.length : 0;
+          return bc - ac || new Date(b.createdAt) - new Date(a.createdAt);
+        }
+        // default newest
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
       if (!filtered.length) {
         emptyState.style.display = "block";
         return;
@@ -1437,6 +1456,9 @@
 
     searchInput.addEventListener("input", (e) => {
       renderEntries(e.target.value.trim());
+    });
+    sortSelect.addEventListener("change", () => {
+      renderEntries(searchInput.value.trim());
     });
 
     document.getElementById("viewAccordion").addEventListener("click", () => {

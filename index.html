@@ -349,6 +349,11 @@
       display: grid;
       gap: 12px;
     }
+    .breadcrumbs {
+      font-weight: 800;
+      color: #0f172a;
+      margin: 6px 0 2px 0;
+    }
     .folder {
       border: 1px solid rgba(226,232,240,0.9);
       border-radius: 14px;
@@ -632,26 +637,26 @@
         <div class="grid grid-2">
           <div class="field">
             <label for="school">المدرسة</label>
-            <select id="school" name="school" required>
-              <option value="">اختر المدرسة</option>
-              <option value="مدرسة البلد الأمين المتوسطة للموهوبين">مدرسة البلد الأمين المتوسطة للموهوبين</option>
+            <input id="school" name="school" type="text" dir="rtl" required placeholder="اكتب اسم المدرسة بحرية">
+            <div class="help">اكتب أي مدرسة.</div>
+          </div>
+          <div class="field">
+            <label for="level">المرحلة</label>
+            <select id="level" name="level" required>
+              <option value="">اختر المرحلة</option>
+              <option value="ابتدائي">ابتدائي</option>
+              <option value="متوسط">متوسط</option>
+              <option value="ثانوي">ثانوي</option>
             </select>
-            <div class="help">المدرسة المتاحة حالياً.</div>
           </div>
           <div class="field">
             <label>الصف</label>
             <div class="grid grid-2">
               <select id="gradeYear" name="gradeYear" required>
                 <option value="">السنة</option>
-                <option value="1">أول</option>
-                <option value="2">ثاني</option>
-                <option value="3">ثالث</option>
               </select>
               <select id="gradeClass" name="gradeClass" required>
                 <option value="">الفصل</option>
-                <option value="1">١</option>
-                <option value="2">٢</option>
-                <option value="3">٣</option>
               </select>
             </div>
             <div class="help">مثال: أول / ٣ أو ثاني / ٢.</div>
@@ -783,6 +788,7 @@
     const form = document.getElementById("entryForm");
     const nameInput = document.getElementById("studentName");
     const schoolSelect = document.getElementById("school");
+    const levelSelect = document.getElementById("level");
     const gradeYearSelect = document.getElementById("gradeYear");
     const gradeClassSelect = document.getElementById("gradeClass");
     const currentInput = document.getElementById("currentParticipation");
@@ -815,7 +821,7 @@
     let pastEntries = [];
     let records = [];
     let editingId = null;
-    let viewState = { level: "schools", school: null, year: null, classLabel: null };
+    let viewState = { stage: "levels", levelName: null, school: null, year: null, classLabel: null };
     let viewMode = "all"; // "accordion" or "all"
 
     const SUPABASE_URL = "https://qsebgpnqiwkhipxionyf.supabase.co";
@@ -901,12 +907,43 @@
     }
 
     function formatGrade(year, klass) {
-      const yearMap = { 1: "أول", 2: "ثاني", 3: "ثالث" };
+      const yearMap = { 1: "أول", 2: "ثاني", 3: "ثالث", 4: "رابع", 5: "خامس", 6: "سادس" };
       const y = Number(year);
       const k = Number(klass);
       if (!yearMap[y] && !k) return "غير محدد";
       const kLabel = k ? ` / ${k}` : "";
       return `${yearMap[y] || "غير محدد"}${kLabel}`;
+    }
+
+    function updateGradeOptions() {
+      const level = levelSelect.value;
+      const maxYear = level === "ابتدائي" ? 6 : 3;
+      const current = gradeYearSelect.value;
+      gradeYearSelect.innerHTML = '<option value="">السنة</option>';
+      const labels = { 1: "أول", 2: "ثاني", 3: "ثالث", 4: "رابع", 5: "خامس", 6: "سادس" };
+      for (let i = 1; i <= maxYear; i++) {
+        const opt = document.createElement("option");
+        opt.value = String(i);
+        opt.textContent = labels[i];
+        gradeYearSelect.appendChild(opt);
+      }
+      if (current && Number(current) <= maxYear) {
+        gradeYearSelect.value = current;
+      }
+    }
+
+    function updateClassOptions() {
+      const current = gradeClassSelect.value;
+      gradeClassSelect.innerHTML = '<option value="">الفصل</option>';
+      for (let i = 1; i <= 10; i++) {
+        const opt = document.createElement("option");
+        opt.value = String(i);
+        opt.textContent = i.toString();
+        gradeClassSelect.appendChild(opt);
+      }
+      if (current && Number(current) <= 10) {
+        gradeClassSelect.value = current;
+      }
     }
 
     function normalizeRecord(row) {
@@ -918,6 +955,7 @@
         interests: row.interests || "",
         bio: row.bio || "",
         school: row.school || "",
+        level: row.level || "",
         gradeYear: row.grade_year ?? row.gradeYear ?? row.grade ?? null,
         gradeClass: row.grade_class ?? row.gradeClass ?? null,
         ownerId: row.owner_id ?? row.ownerId ?? null,
@@ -1075,13 +1113,15 @@
 
       const grouped = {};
       filtered.forEach(rec => {
+        const level = rec.level || "مرحلة غير محددة";
         const school = rec.school || "المدرسة غير محددة";
         const yearLabel = rec.gradeYear ? formatGrade(rec.gradeYear, rec.gradeClass).split(" / ")[0] : "السنة غير محددة";
         const classLabel = rec.gradeClass ? `فصل ${rec.gradeClass}` : "فصل غير محدد";
-        grouped[school] ??= {};
-        grouped[school][yearLabel] ??= {};
-        grouped[school][yearLabel][classLabel] ??= [];
-        grouped[school][yearLabel][classLabel].push(rec);
+        grouped[level] ??= {};
+        grouped[level][school] ??= {};
+        grouped[level][school][yearLabel] ??= {};
+        grouped[level][school][yearLabel][classLabel] ??= [];
+        grouped[level][school][yearLabel][classLabel].push(rec);
       });
 
       const wrapper = document.createElement("div");
@@ -1101,9 +1141,12 @@
 
           const metaLine = document.createElement("div");
           metaLine.className = "help";
-          const interestsText = rec.interests ? `اهتمامات: ${rec.interests}` : "";
-          metaLine.textContent = [interestsText].filter(Boolean).join(" • ");
-          card.appendChild(metaLine);
+        const schoolText = rec.school ? `المدرسة: ${rec.school}` : "المدرسة: غير محدد";
+        const levelText = rec.level ? `المرحلة: ${rec.level}` : "";
+        const gradeText = `الصف: ${formatGrade(rec.gradeYear, rec.gradeClass)}`;
+        const interestsText = rec.interests ? `اهتمامات: ${rec.interests}` : "";
+        metaLine.textContent = [schoolText, levelText, gradeText, interestsText].filter(Boolean).join(" • ");
+        card.appendChild(metaLine);
 
           const currentSec = document.createElement("div");
           const currentText = document.createElement("div");
@@ -1190,77 +1233,116 @@
       }
 
       // Render based on viewState (accordion)
-      if (viewState.level === "schools") {
+      if (viewState.stage === "levels") {
         const list = document.createElement("div");
         list.className = "nav-list";
-        Object.keys(grouped).forEach(schoolName => {
+        Object.keys(grouped).forEach(levelName => {
           const btn = document.createElement("button");
           btn.className = "nav-btn";
-          const count = Object.values(grouped[schoolName]).reduce((acc, yr) => acc + Object.values(yr).reduce((a, cls) => a + cls.length, 0), 0);
-          btn.innerHTML = `<div>${schoolName}</div><span>${count} مشارك</span>`;
+          const count = Object.values(grouped[levelName]).reduce((acc, sch) =>
+            acc + Object.values(sch).reduce((yrAcc, yr) =>
+              yrAcc + Object.values(yr).reduce((clsAcc, cls) => clsAcc + cls.length, 0), 0), 0);
+          btn.innerHTML = `<div>${levelName}</div><span>${count} مشارك</span>`;
           btn.addEventListener("click", () => {
-            viewState = { level: "years", school: schoolName, year: null, classLabel: null };
+            viewState = { stage: "schools", levelName, school: null, year: null, classLabel: null };
             renderEntries(filter);
           });
           list.appendChild(btn);
         });
         wrapper.appendChild(list);
-      } else if (viewState.level === "years" && grouped[viewState.school]) {
+      } else if (viewState.stage === "schools" && grouped[viewState.levelName]) {
+        const back = document.createElement("button");
+        back.className = "btn btn-secondary";
+        back.textContent = "رجوع للمراحل";
+        back.addEventListener("click", () => {
+          viewState = { stage: "levels", levelName: null, school: null, year: null, classLabel: null };
+          renderEntries(filter);
+        });
+        const bc = document.createElement("div");
+        bc.className = "breadcrumbs";
+        bc.textContent = "هذا: المدارس";
+        wrapper.appendChild(bc);
+        wrapper.appendChild(back);
+        const list = document.createElement("div");
+        list.className = "nav-list";
+        Object.keys(grouped[viewState.levelName]).forEach(schoolName => {
+          const btn = document.createElement("button");
+          btn.className = "nav-btn";
+          const count = Object.values(grouped[viewState.levelName][schoolName]).reduce((acc, yr) => acc + Object.values(yr).reduce((a, cls) => a + cls.length, 0), 0);
+          btn.innerHTML = `<div>${schoolName}</div><span>${count} مشارك</span>`;
+          btn.addEventListener("click", () => {
+            viewState = { stage: "years", levelName: viewState.levelName, school: schoolName, year: null, classLabel: null };
+            renderEntries(filter);
+          });
+          list.appendChild(btn);
+        });
+        wrapper.appendChild(list);
+      } else if (viewState.stage === "years" && grouped[viewState.levelName]?.[viewState.school]) {
         const back = document.createElement("button");
         back.className = "btn btn-secondary";
         back.textContent = "رجوع للمدارس";
         back.addEventListener("click", () => {
-          viewState = { level: "schools", school: null, year: null, classLabel: null };
+          viewState = { stage: "schools", levelName: viewState.levelName, school: null, year: null, classLabel: null };
           renderEntries(filter);
         });
+        const bc = document.createElement("div");
+        bc.className = "breadcrumbs";
+        bc.textContent = "هذا: السنوات";
+        wrapper.appendChild(bc);
         wrapper.appendChild(back);
         const list = document.createElement("div");
         list.className = "nav-list";
-        Object.keys(grouped[viewState.school]).forEach(yearLabel => {
+        Object.keys(grouped[viewState.levelName][viewState.school]).forEach(yearLabel => {
           const btn = document.createElement("button");
           btn.className = "nav-btn";
-          const count = Object.values(grouped[viewState.school][yearLabel]).reduce((a, cls) => a + cls.length, 0);
+          const count = Object.values(grouped[viewState.levelName][viewState.school][yearLabel]).reduce((a, cls) => a + cls.length, 0);
           btn.innerHTML = `<div>${yearLabel}</div><span>${count} مشارك</span>`;
           btn.addEventListener("click", () => {
-            viewState = { level: "classes", school: viewState.school, year: yearLabel, classLabel: null };
+            viewState = { stage: "classes", levelName: viewState.levelName, school: viewState.school, year: yearLabel, classLabel: null };
             renderEntries(filter);
           });
           list.appendChild(btn);
         });
         wrapper.appendChild(list);
-      } else if (viewState.level === "classes" && grouped[viewState.school]?.[viewState.year]) {
+      } else if (viewState.stage === "classes" && grouped[viewState.levelName]?.[viewState.school]?.[viewState.year]) {
         const back = document.createElement("button");
         back.className = "btn btn-secondary";
         back.textContent = "رجوع للسنوات";
         back.addEventListener("click", () => {
-          viewState = { level: "years", school: viewState.school, year: null, classLabel: null };
+          viewState = { stage: "years", levelName: viewState.levelName, school: viewState.school, year: null, classLabel: null };
           renderEntries(filter);
         });
+        const bc = document.createElement("div");
+        bc.className = "breadcrumbs";
+        bc.textContent = "هذا: الفصول";
+        wrapper.appendChild(bc);
         wrapper.appendChild(back);
-        const list = document.createElement("div");
-        list.className = "nav-list";
-        Object.keys(grouped[viewState.school][viewState.year]).forEach(classLabel => {
+        const list = grouped[viewState.levelName][viewState.school][viewState.year];
+        Object.keys(list).forEach(classLabel => {
           const btn = document.createElement("button");
           btn.className = "nav-btn";
-          const count = grouped[viewState.school][viewState.year][classLabel].length;
+          const count = list[classLabel].length;
           btn.innerHTML = `<div>${classLabel}</div><span>${count} مشارك</span>`;
           btn.addEventListener("click", () => {
-            viewState = { level: "cards", school: viewState.school, year: viewState.year, classLabel };
+            viewState = { stage: "cards", levelName: viewState.levelName, school: viewState.school, year: viewState.year, classLabel };
             renderEntries(filter);
           });
-          list.appendChild(btn);
+          wrapper.appendChild(btn);
         });
-        wrapper.appendChild(list);
-      } else if (viewState.level === "cards") {
+      } else if (viewState.stage === "cards") {
         const back = document.createElement("button");
         back.className = "btn btn-secondary";
         back.textContent = "رجوع للفصول";
         back.addEventListener("click", () => {
-          viewState = { level: "classes", school: viewState.school, year: viewState.year, classLabel: null };
+          viewState = { stage: "classes", levelName: viewState.levelName, school: viewState.school, year: viewState.year, classLabel: null };
           renderEntries(filter);
         });
+        const bc = document.createElement("div");
+        bc.className = "breadcrumbs";
+        bc.textContent = "هذا: البطاقات";
+        wrapper.appendChild(bc);
         wrapper.appendChild(back);
-        const list = grouped[viewState.school]?.[viewState.year]?.[viewState.classLabel] || [];
+        const list = grouped[viewState.levelName]?.[viewState.school]?.[viewState.year]?.[viewState.classLabel] || [];
         wrapper.appendChild(renderCards(list));
       }
 
@@ -1271,9 +1353,12 @@
       form.reset();
       interestsInput.value = "";
       bioInput.value = "";
+      editPassInput.value = "";
       pastEntries = [];
       editingId = null;
       saveBtn.textContent = "حفظ المشاركة";
+      updateGradeOptions();
+      updateClassOptions();
       renderPastList();
     }
 
@@ -1299,6 +1384,9 @@
       editingId = rec.id;
       nameInput.value = rec.name || "";
       schoolSelect.value = rec.school || "";
+      levelSelect.value = rec.level || "";
+      updateGradeOptions();
+      updateClassOptions();
       gradeYearSelect.value = rec.gradeYear || "";
       gradeClassSelect.value = rec.gradeClass || "";
       interestsInput.value = rec.interests || "";
@@ -1417,6 +1505,7 @@
         interests: interestsInput.value.trim(),
         bio: bioInput.value.trim(),
         school: schoolSelect.value,
+        level: levelSelect.value,
         gradeYear: gradeYearSelect.value,
         gradeClass: gradeClassSelect.value,
         previous: [...pastEntries],
@@ -1465,10 +1554,14 @@
     sortSelect.addEventListener("change", () => {
       renderEntries(searchInput.value.trim());
     });
+    levelSelect.addEventListener("change", () => {
+      updateGradeOptions();
+      renderEntries(searchInput.value.trim());
+    });
 
     document.getElementById("viewAccordion").addEventListener("click", () => {
       viewMode = "accordion";
-      viewState = { level: "schools", school: null, year: null, classLabel: null };
+      viewState = { stage: "levels", levelName: null, school: null, year: null, classLabel: null };
       renderEntries(searchInput.value.trim());
     });
     document.getElementById("viewAll").addEventListener("click", () => {
@@ -1490,6 +1583,8 @@
 
     // Initialize
     renderPastList();
+    updateClassOptions();
+    updateGradeOptions();
     initRecords();
   </script>
 </body>

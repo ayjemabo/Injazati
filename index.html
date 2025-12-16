@@ -825,6 +825,8 @@
     const pastList = document.getElementById("pastList");
     const pdfInput = document.getElementById("pdfInput");
     const pdfPreview = document.getElementById("pdfPreview");
+    let selectedFiles = [];
+    let existingPdfs = [];
     const entriesContainer = document.getElementById("entries");
     const emptyState = document.getElementById("empty");
     const searchInput = document.getElementById("search");
@@ -953,6 +955,9 @@
         const clean = raw.split("?")[0] || raw;
         return { url: item, name: clean };
       }
+      if (item.file) {
+        return { url: null, name: item.file.name };
+      }
       if (item.url || item.name) {
         const base = item.name || (item.url ? item.url.split("/").pop() : `ملف ${idx + 1}`);
         const clean = (base || `ملف ${idx + 1}`).split("?")[0] || base;
@@ -961,34 +966,62 @@
       return null;
     }
 
-    function renderPdfPreview(urls = []) {
+    function renderPdfPreview(items = []) {
       pdfPreview.innerHTML = "";
-      if (!urls.length) {
+      if (!items.length) {
         const span = document.createElement("div");
         span.className = "help";
         span.textContent = "لا توجد ملفات مرفقة حالياً.";
         pdfPreview.appendChild(span);
         return;
       }
-      urls.forEach((item, idx) => {
+      items.forEach((item, idx) => {
         const info = pdfDisplay(item, idx);
         if (!info) return;
+        const row = document.createElement("div");
+        row.style.display = "flex";
+        row.style.alignItems = "center";
+        row.style.gap = "8px";
+        let content;
         if (info.url) {
-          const link = document.createElement("a");
-          link.className = "pdf-link";
-          link.href = info.url;
-          link.target = "_blank";
-          link.rel = "noopener noreferrer";
-          link.textContent = info.name || `ملف ${idx + 1}`;
-          pdfPreview.appendChild(link);
+          content = document.createElement("a");
+          content.className = "pdf-link";
+          content.href = info.url;
+          content.target = "_blank";
+          content.rel = "noopener noreferrer";
+          content.textContent = info.name || `ملف ${idx + 1}`;
         } else {
-          const div = document.createElement("div");
-          div.className = "pdf-link";
-          div.style.cursor = "default";
-          div.textContent = info.name || `ملف ${idx + 1}`;
-          pdfPreview.appendChild(div);
+          content = document.createElement("div");
+          content.className = "pdf-link";
+          content.style.cursor = "default";
+          content.textContent = info.name || `ملف ${idx + 1}`;
         }
+        row.appendChild(content);
+
+        const delBtn = document.createElement("button");
+        delBtn.type = "button";
+        delBtn.className = "btn btn-secondary";
+        delBtn.style.padding = "8px 10px";
+        delBtn.textContent = "حذف";
+        delBtn.addEventListener("click", () => {
+          if (item.type === "existing") {
+            existingPdfs = existingPdfs.filter((_, i) => i !== item._idx);
+          } else if (item.type === "new") {
+            selectedFiles = selectedFiles.filter((_, i) => i !== item._idx);
+          }
+          pdfInput.value = "";
+          renderPdfPreview(buildPdfPreviewList());
+        });
+        row.appendChild(delBtn);
+
+        pdfPreview.appendChild(row);
       });
+    }
+
+    function buildPdfPreviewList() {
+      const existing = (existingPdfs || []).map((p, idx) => ({ ...p, type: "existing", _idx: idx }));
+      const news = (selectedFiles || []).map((f, idx) => ({ type: "new", _idx: idx, file: f }));
+      return [...existing, ...news];
     }
 
     async function uploadPdfs(files) {
@@ -1477,6 +1510,8 @@
       interestsInput.value = "";
       bioInput.value = "";
       pdfInput.value = "";
+      selectedFiles = [];
+      existingPdfs = [];
       pastEntries = [];
       editingId = null;
       saveBtn.textContent = "حفظ المشاركة";
@@ -1517,7 +1552,9 @@
       bioInput.value = rec.bio || "";
       currentInput.value = rec.current || "";
       pastEntries = Array.isArray(rec.previous) ? [...rec.previous] : [];
-      renderPdfPreview(rec.pdfs || []);
+      existingPdfs = rec.pdfs ? rec.pdfs.map(p => (typeof p === "string" ? { url: p, name: p.split("/").pop() } : p)) : [];
+      selectedFiles = [];
+      renderPdfPreview(buildPdfPreviewList());
       renderPastList();
       saveBtn.textContent = "تحديث المشاركة";
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1642,23 +1679,16 @@
         pastEntries.push({ year: pendingYear, text: pendingText });
       }
 
-      const allFiles = Array.from(pdfInput.files || []);
-      const selectedFiles = allFiles.slice(0, 10);
-      if (allFiles.length > 10) {
-        alert("سيتم استخدام أول 10 ملفات فقط.");
-      }
-      let pdfUrls = [];
+      let pdfList = [...existingPdfs];
       if (selectedFiles.length) {
         if (!isSupabaseReady()) {
           alert("رفع الملفات يتطلب تفعيل Supabase Storage. سيتم تجاهل الملفات.");
         } else {
-          pdfUrls = await uploadPdfs(selectedFiles);
+          const uploaded = await uploadPdfs(selectedFiles.slice(0, 10));
+          pdfList = [...existingPdfs, ...uploaded];
         }
-      } else if (editingId) {
-        const existing = records.find(r => r.id === editingId);
-        pdfUrls = existing?.pdfs || [];
       }
-      renderPdfPreview(pdfUrls);
+      renderPdfPreview(buildPdfPreviewList());
 
       const baseRecord = {
         id: editingId || Date.now(),
@@ -1670,7 +1700,7 @@
         level: levelSelect.value,
         gradeYear: gradeYearSelect.value,
         gradeClass: gradeClassSelect.value,
-        pdfs: pdfUrls,
+        pdfs: pdfList,
         previous: [...pastEntries],
         createdAt: editingId ? (records.find(r => r.id === editingId)?.createdAt || new Date().toISOString()) : new Date().toISOString(),
         ownerId: OWNER_ID
@@ -1719,7 +1749,9 @@
     });
     pdfInput.addEventListener("change", () => {
       const files = Array.from(pdfInput.files || []).slice(0, 10);
-      renderPdfPreview(files);
+      selectedFiles = files;
+      pdfInput.value = "";
+      renderPdfPreview(buildPdfPreviewList());
     });
     levelSelect.addEventListener("change", () => {
       updateGradeOptions();

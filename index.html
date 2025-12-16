@@ -9,6 +9,7 @@
   <meta name="keywords" content="إنجازات, مشاركات, مدرسة البلد الأمين المتوسطة للموهوبين, طلاب, مسابقات, بيبراس, كانجارو">
   <meta name="author" content="مدرسة البلد الأمين المتوسطة للموهوبين">
   <meta property="og:title" content="إنجازاتي">
+  <meta name="apple-itunes-app" content="app-id=6756132542">
   <meta property="og:description" content="سجل إنجازات ومشاركات الطلاب في مدرسة البلد الأمين المتوسطة للموهوبين.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="images/logo.png">
@@ -424,6 +425,22 @@
       gap: 6px;
       flex-wrap: wrap;
     }
+    .pdf-list {
+      display: grid;
+      gap: 6px;
+    }
+    .pdf-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(14,165,233,0.2);
+      background: rgba(224, 242, 254, 0.6);
+      color: #0f172a;
+      text-decoration: none;
+      font-weight: 700;
+    }
     .nav-list {
       display: grid;
       gap: 8px;
@@ -703,6 +720,13 @@
           <div id="pastList" class="flex" style="margin-top:6px;"></div>
         </div>
 
+        <div class="field">
+          <label>ملفات PDF (اختياري – حد أقصى ١٠)</label>
+          <input id="pdfInput" type="file" accept="application/pdf" multiple>
+          <div class="help">يفضل دمج جميع الشهادات/الملفات في ملف PDF واحد.</div>
+          <div id="pdfPreview" class="pdf-list" style="margin-top:8px;"></div>
+        </div>
+
         <div class="hint" style="margin-top:8px; text-align:right;">يمكنك تعديل وحذف مشاركاتك من البطاقات مباشرة.</div>
         <div class="flex" style="justify-content:flex-start; margin-top:14px;">
           <button type="submit" class="btn btn-primary" id="saveBtn">حفظ المشاركة</button>
@@ -774,6 +798,10 @@
       <div class="section-title">مشاركات السنوات السابقة</div>
       <div class="grid" id="detailPast"></div>
     </div>
+    <div>
+      <div class="section-title">ملفات (PDF)</div>
+      <div class="pdf-list" id="detailPdfs"></div>
+    </div>
   </section>
 
   <div id="toast" class="toast hidden" aria-live="polite">
@@ -795,6 +823,8 @@
     const pastYearInput = document.getElementById("pastYear");
     const pastDescInput = document.getElementById("pastDescription");
     const pastList = document.getElementById("pastList");
+    const pdfInput = document.getElementById("pdfInput");
+    const pdfPreview = document.getElementById("pdfPreview");
     const entriesContainer = document.getElementById("entries");
     const emptyState = document.getElementById("empty");
     const searchInput = document.getElementById("search");
@@ -813,6 +843,7 @@
     const detailBio = document.getElementById("detailBio");
     const detailCurrent = document.getElementById("detailCurrent");
     const detailPast = document.getElementById("detailPast");
+    const detailPdfs = document.getElementById("detailPdfs");
     const mainView = document.querySelector("main");
     const toast = document.getElementById("toast");
     const toastMessage = document.getElementById("toastMessage");
@@ -915,6 +946,75 @@
       return `${yearMap[y] || "غير محدد"}${kLabel}`;
     }
 
+    function pdfDisplay(item, idx) {
+      if (!item) return null;
+      if (typeof item === "string") {
+        const raw = item.split("/").pop() || `ملف ${idx + 1}`;
+        const clean = raw.split("?")[0] || raw;
+        return { url: item, name: clean };
+      }
+      if (item.url || item.name) {
+        const base = item.name || (item.url ? item.url.split("/").pop() : `ملف ${idx + 1}`);
+        const clean = (base || `ملف ${idx + 1}`).split("?")[0] || base;
+        return { url: item.url || null, name: clean };
+      }
+      return null;
+    }
+
+    function renderPdfPreview(urls = []) {
+      pdfPreview.innerHTML = "";
+      if (!urls.length) {
+        const span = document.createElement("div");
+        span.className = "help";
+        span.textContent = "لا توجد ملفات مرفقة حالياً.";
+        pdfPreview.appendChild(span);
+        return;
+      }
+      urls.forEach((item, idx) => {
+        const info = pdfDisplay(item, idx);
+        if (!info) return;
+        if (info.url) {
+          const link = document.createElement("a");
+          link.className = "pdf-link";
+          link.href = info.url;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.textContent = info.name || `ملف ${idx + 1}`;
+          pdfPreview.appendChild(link);
+        } else {
+          const div = document.createElement("div");
+          div.className = "pdf-link";
+          div.style.cursor = "default";
+          div.textContent = info.name || `ملف ${idx + 1}`;
+          pdfPreview.appendChild(div);
+        }
+      });
+    }
+
+    async function uploadPdfs(files) {
+      if (!isSupabaseReady()) return [];
+      const bucket = "pdfs";
+      const uploads = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (!file || file.type !== "application/pdf") continue;
+        if (file.size > 15 * 1024 * 1024) { // 15MB guard
+          alert("حجم الملف أكبر من 15MB، يرجى تقليل الحجم.");
+          continue;
+        }
+        const path = `${OWNER_ID}/${Date.now()}-${i}-${file.name.replace(/\s+/g, "_")}`;
+        const { error } = await supabaseClient.storage.from(bucket).upload(path, file, { upsert: false });
+        if (error) {
+          console.error("Supabase upload error:", error.message);
+          alert(`تعذر رفع الملف إلى السيرفر: ${error.message || ""}`.trim());
+          continue;
+        }
+        const { data: pub } = supabaseClient.storage.from(bucket).getPublicUrl(path);
+        if (pub?.publicUrl) uploads.push(pub.publicUrl);
+      }
+      return uploads;
+    }
+
     function updateGradeOptions() {
       const level = levelSelect.value;
       const maxYear = level === "ابتدائي" ? 6 : 3;
@@ -958,6 +1058,7 @@
         level: row.level || "",
         gradeYear: row.grade_year ?? row.gradeYear ?? row.grade ?? null,
         gradeClass: row.grade_class ?? row.gradeClass ?? null,
+        pdfs: Array.isArray(row.pdfs) ? row.pdfs : [],
         ownerId: row.owner_id ?? row.ownerId ?? null,
         previous: Array.isArray(row.previous) ? row.previous : [],
         createdAt: row.createdAt || row.created_at || new Date().toISOString()
@@ -984,6 +1085,7 @@
         created_at: record.createdAt,
         grade_year: record.gradeYear,
         grade_class: record.gradeClass,
+        pdfs: record.pdfs,
         owner_id: OWNER_ID
       };
       delete payload.id;
@@ -1011,6 +1113,7 @@
         grade_year: record.gradeYear,
         grade_class: record.gradeClass,
         created_at: record.createdAt,
+        pdfs: record.pdfs,
         owner_id: OWNER_ID
       };
       delete payload.gradeYear;
@@ -1193,6 +1296,26 @@
           }
           card.appendChild(previousSec);
 
+          if (rec.pdfs && rec.pdfs.length) {
+            const pdfSec = document.createElement("div");
+            pdfSec.innerHTML = `<div class="section-title">ملفات (PDF)</div>`;
+            const pdfList = document.createElement("div");
+            pdfList.className = "pdf-list";
+            rec.pdfs.forEach((item, idx) => {
+              const info = pdfDisplay(item, idx);
+              if (!info) return;
+              const link = document.createElement("a");
+              link.className = "pdf-link";
+              link.href = info.url;
+              link.target = "_blank";
+              link.rel = "noopener noreferrer";
+              link.textContent = info.name || `ملف ${idx + 1}`;
+              pdfList.appendChild(link);
+            });
+            pdfSec.appendChild(pdfList);
+            card.appendChild(pdfSec);
+          }
+
           const actions = document.createElement("div");
           actions.className = "flex";
           const detailBtn = document.createElement("button");
@@ -1353,13 +1476,14 @@
       form.reset();
       interestsInput.value = "";
       bioInput.value = "";
-      editPassInput.value = "";
+      pdfInput.value = "";
       pastEntries = [];
       editingId = null;
       saveBtn.textContent = "حفظ المشاركة";
       updateGradeOptions();
       updateClassOptions();
       renderPastList();
+      renderPdfPreview([]);
     }
 
     function showToast(message = "تم التسليم بنجاح") {
@@ -1393,6 +1517,7 @@
       bioInput.value = rec.bio || "";
       currentInput.value = rec.current || "";
       pastEntries = Array.isArray(rec.previous) ? [...rec.previous] : [];
+      renderPdfPreview(rec.pdfs || []);
       renderPastList();
       saveBtn.textContent = "تحديث المشاركة";
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1442,6 +1567,25 @@
         span.className = "help";
         span.textContent = "لا توجد مشاركات سابقة.";
         detailPast.appendChild(span);
+      }
+      detailPdfs.innerHTML = "";
+      if (rec.pdfs && rec.pdfs.length) {
+        rec.pdfs.forEach((item, idx) => {
+          const info = pdfDisplay(item, idx);
+          if (!info) return;
+          const link = document.createElement("a");
+          link.className = "pdf-link";
+          link.href = info.url;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.textContent = info.name || `ملف ${idx + 1}`;
+          detailPdfs.appendChild(link);
+        });
+      } else {
+        const span = document.createElement("div");
+        span.className = "help";
+        span.textContent = "لا توجد ملفات مرفقة.";
+        detailPdfs.appendChild(span);
       }
     }
 
@@ -1498,6 +1642,24 @@
         pastEntries.push({ year: pendingYear, text: pendingText });
       }
 
+      const allFiles = Array.from(pdfInput.files || []);
+      const selectedFiles = allFiles.slice(0, 10);
+      if (allFiles.length > 10) {
+        alert("سيتم استخدام أول 10 ملفات فقط.");
+      }
+      let pdfUrls = [];
+      if (selectedFiles.length) {
+        if (!isSupabaseReady()) {
+          alert("رفع الملفات يتطلب تفعيل Supabase Storage. سيتم تجاهل الملفات.");
+        } else {
+          pdfUrls = await uploadPdfs(selectedFiles);
+        }
+      } else if (editingId) {
+        const existing = records.find(r => r.id === editingId);
+        pdfUrls = existing?.pdfs || [];
+      }
+      renderPdfPreview(pdfUrls);
+
       const baseRecord = {
         id: editingId || Date.now(),
         name: nameInput.value.trim(),
@@ -1508,6 +1670,7 @@
         level: levelSelect.value,
         gradeYear: gradeYearSelect.value,
         gradeClass: gradeClassSelect.value,
+        pdfs: pdfUrls,
         previous: [...pastEntries],
         createdAt: editingId ? (records.find(r => r.id === editingId)?.createdAt || new Date().toISOString()) : new Date().toISOString(),
         ownerId: OWNER_ID
@@ -1554,6 +1717,10 @@
     sortSelect.addEventListener("change", () => {
       renderEntries(searchInput.value.trim());
     });
+    pdfInput.addEventListener("change", () => {
+      const files = Array.from(pdfInput.files || []).slice(0, 10);
+      renderPdfPreview(files);
+    });
     levelSelect.addEventListener("change", () => {
       updateGradeOptions();
       renderEntries(searchInput.value.trim());
@@ -1585,6 +1752,7 @@
     renderPastList();
     updateClassOptions();
     updateGradeOptions();
+    renderPdfPreview([]);
     initRecords();
   </script>
 </body>

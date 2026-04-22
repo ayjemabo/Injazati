@@ -4,8 +4,7 @@ import {
   buildManagedStoragePath,
   deleteManagedFiles,
   downloadManagedFile,
-  prepareManagedUpload,
-  sanitizeStorageSegment
+  prepareManagedUpload
 } from "@/lib/storage";
 
 type EnsureSubmissionInput = {
@@ -39,71 +38,6 @@ type UploadPreparationInput = {
   }>;
 };
 
-async function getSubmissionStoragePrefix(submissionId: string) {
-  const supabase = createServerSupabaseClient();
-  if (!supabase) {
-    throw new Error("Supabase server environment is not configured.");
-  }
-
-  const submissionResult = await supabase
-    .from("submissions")
-    .select("student_profile_id, round_id")
-    .eq("id", submissionId)
-    .maybeSingle();
-
-  if (submissionResult.error) {
-    throw new Error(submissionResult.error.message);
-  }
-
-  const submission = submissionResult.data;
-  if (!submission) {
-    return null;
-  }
-
-  const [profileResult, roundResult] = await Promise.all([
-    supabase
-      .from("student_profiles")
-      .select("user_id")
-      .eq("id", submission.student_profile_id)
-      .maybeSingle(),
-    supabase
-      .from("submission_rounds")
-      .select("subject")
-      .eq("id", submission.round_id)
-      .maybeSingle()
-  ]);
-
-  if (profileResult.error) {
-    throw new Error(profileResult.error.message);
-  }
-
-  if (roundResult.error) {
-    throw new Error(roundResult.error.message);
-  }
-
-  const userId = profileResult.data?.user_id;
-  if (!userId) {
-    return null;
-  }
-
-  const userResult = await supabase
-    .from("profiles")
-    .select("username, display_name")
-    .eq("id", userId)
-    .maybeSingle();
-
-  if (userResult.error) {
-    throw new Error(userResult.error.message);
-  }
-
-  const subject = sanitizeStorageSegment(roundResult.data?.subject ?? "art");
-  const studentIdentifier = sanitizeStorageSegment(
-    userResult.data?.username || userResult.data?.display_name || userId
-  );
-
-  return `${subject}/${studentIdentifier}`;
-}
-
 function detectFileKind(name: string): RegisterFileInput["kind"] {
   const extension = name.split(".").pop()?.toLowerCase() ?? "";
 
@@ -123,13 +57,10 @@ function detectFileKind(name: string): RegisterFileInput["kind"] {
 }
 
 export async function prepareSubmissionUploads(input: UploadPreparationInput) {
-  const storagePrefix = await getSubmissionStoragePrefix(input.submissionId);
   const uploads = [];
 
   for (const file of input.files) {
-    const storagePath = buildManagedStoragePath(input.submissionId, file.clientName || file.originalName, {
-      prefix: storagePrefix ?? undefined
-    });
+    const storagePath = buildManagedStoragePath(input.submissionId, file.clientName || file.originalName);
     const uploadTarget = await prepareManagedUpload({
       storagePath,
       contentType: file.contentType
@@ -414,13 +345,10 @@ export async function uploadSubmissionFiles(input: {
 
   const uploadedStoragePaths: string[] = [];
   const insertedFileIds: string[] = [];
-  const storagePrefix = await getSubmissionStoragePrefix(input.submissionId);
 
   try {
     for (const item of input.files) {
-      const storagePath = buildManagedStoragePath(input.submissionId, item.file.name, {
-        prefix: storagePrefix ?? undefined
-      });
+      const storagePath = buildManagedStoragePath(input.submissionId, item.file.name);
       const uploadTarget = await prepareManagedUpload({
         storagePath,
         contentType: item.file.type || "application/octet-stream"

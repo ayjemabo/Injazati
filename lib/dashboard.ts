@@ -1,5 +1,5 @@
-import { createServerSupabaseClient } from "@/lib/supabase";
 import { getDataset } from "@/lib/data";
+import { createManagedPreviewUrl } from "@/lib/storage";
 import type { SubmissionStatus, SubmissionSubject, TeacherAssignment } from "@/lib/types";
 
 export function getStatusLabel(status: SubmissionStatus) {
@@ -103,10 +103,9 @@ export async function getSubmissionView(submissionId: string) {
   const assignedTeacherIds = getTeacherIdsForSubmission(teacherAssignments, profile.classSectionId, round.subject);
   const files = submissionFiles.filter((item) => item.submissionId === submissionId);
   const comments = reviewComments.filter((item) => item.submissionId === submissionId);
-  const supabase = source === "supabase" ? createServerSupabaseClient() : null;
   const filesWithUrls = await Promise.all(
     files.map(async (file) => {
-      if (!supabase) {
+      if (source !== "supabase") {
         return {
           ...file,
           previewUrl: null,
@@ -114,13 +113,9 @@ export async function getSubmissionView(submissionId: string) {
         };
       }
 
-      const signedUrlResult = await supabase.storage
-        .from(process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || "student-submissions")
-        .createSignedUrl(file.storagePath, 60 * 60);
-
       return {
         ...file,
-        previewUrl: signedUrlResult.data?.signedUrl ?? null,
+        previewUrl: await createManagedPreviewUrl(file.storagePath),
         downloadUrl: `/api/submissions/${submissionId}/files/${file.id}/download`
       };
     })

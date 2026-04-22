@@ -39,15 +39,14 @@ export async function GET(
       return NextResponse.json({ ok: false, error: "الملف غير موجود." }, { status: 404 });
     }
 
-    const blob = await downloadSubmissionFile({
+    const filePayload = await downloadSubmissionFile({
       storagePath: file.storagePath
     });
-
-    const buffer = Buffer.from(await blob.arrayBuffer());
+    const buffer = Buffer.from(filePayload.bytes);
     return new NextResponse(buffer, {
       status: 200,
       headers: {
-        "Content-Type": blob.type || "application/octet-stream",
+        "Content-Type": filePayload.contentType || "application/octet-stream",
         "Content-Disposition": buildContentDisposition(file.name),
         "Content-Length": String(buffer.length),
         "Cache-Control": "private, max-age=0, must-revalidate"

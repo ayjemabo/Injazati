@@ -1,7 +1,11 @@
 import { revalidatePath } from "next/cache";
 import { createServerSupabaseClient } from "@/lib/supabase";
-
-const storageBucket = process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || "student-submissions";
+import {
+  buildManagedStoragePath,
+  deleteManagedFiles,
+  downloadManagedFile,
+  prepareManagedUpload
+} from "@/lib/storage";
 
 type EnsureSubmissionInput = {
   studentProfileId: string;
@@ -52,30 +56,18 @@ function detectFileKind(name: string): RegisterFileInput["kind"] {
   return "document";
 }
 
-function getSafeStoragePath(submissionId: string, name: string) {
-  const extension = name.includes(".") ? `.${name.split(".").pop()?.toLowerCase()}` : "";
-  return `${submissionId}/${Date.now()}-${crypto.randomUUID()}${extension}`;
-}
-
 export async function prepareSubmissionUploads(input: UploadPreparationInput) {
-  const supabase = createServerSupabaseClient();
-  if (!supabase) {
-    throw new Error("Supabase server environment is not configured.");
-  }
-
   const uploads = [];
 
   for (const file of input.files) {
-    const storagePath = getSafeStoragePath(input.submissionId, file.clientName || file.originalName);
-    const signedUpload = await supabase.storage.from(storageBucket).createSignedUploadUrl(storagePath);
-
-    if (signedUpload.error || !signedUpload.data?.token) {
-      throw new Error(signedUpload.error?.message ?? "تعذر تجهيز رابط الرفع.");
-    }
+    const storagePath = buildManagedStoragePath(input.submissionId, file.clientName || file.originalName);
+    const uploadTarget = await prepareManagedUpload({
+      storagePath,
+      contentType: file.contentType
+    });
 
     uploads.push({
-      storagePath,
-      token: signedUpload.data.token,
+      ...uploadTarget,
       originalName: file.originalName,
       contentType: file.contentType,
       sizeBytes: file.sizeBytes
@@ -171,9 +163,7 @@ async function cleanupFailedUpload(supabase: NonNullable<ReturnType<typeof creat
     await supabase.from("submission_files").delete().in("id", insertedFileIds);
   }
 
-  if (storagePaths.length > 0) {
-    await supabase.storage.from(storageBucket).remove(storagePaths);
-  }
+  await deleteManagedFiles(storagePaths);
 
   await supabase
     .from("submissions")
@@ -242,17 +232,7 @@ export async function cleanupPreparedSubmissionUploads(input: {
 export async function downloadSubmissionFile(input: {
   storagePath: string;
 }) {
-  const supabase = createServerSupabaseClient();
-  if (!supabase) {
-    throw new Error("Supabase server environment is not configured.");
-  }
-
-  const result = await supabase.storage.from(storageBucket).download(input.storagePath);
-  if (result.error || !result.data) {
-    throw new Error(result.error?.message ?? "تعذر تنزيل الملف.");
-  }
-
-  return result.data;
+  return downloadManagedFile(input.storagePath);
 }
 
 export async function deleteSubmissionFile(input: {
@@ -289,10 +269,7 @@ export async function deleteSubmissionFile(input: {
     throw new Error(deleteFileResult.error.message);
   }
 
-  const storageDeleteResult = await supabase.storage.from(storageBucket).remove([fileResult.data.storage_path]);
-  if (storageDeleteResult.error) {
-    throw new Error(storageDeleteResult.error.message);
-  }
+  await deleteManagedFiles([fileResult.data.storage_path]);
 
   const remainingFilesResult = await supabase
     .from("submission_files")
@@ -341,12 +318,7 @@ export async function deleteSubmission(input: {
   }
 
   const storagePaths = (filesResult.data ?? []).map((file) => file.storage_path);
-  if (storagePaths.length > 0) {
-    const storageDeleteResult = await supabase.storage.from(storageBucket).remove(storagePaths);
-    if (storageDeleteResult.error) {
-      throw new Error(storageDeleteResult.error.message);
-    }
-  }
+  await deleteManagedFiles(storagePaths);
 
   const deleteResult = await supabase.from("submissions").delete().eq("id", input.submissionId);
   if (deleteResult.error) {
@@ -376,15 +348,36 @@ export async function uploadSubmissionFiles(input: {
 
   try {
     for (const item of input.files) {
-      const storagePath = getSafeStoragePath(input.submissionId, item.file.name);
-      const fileBytes = new Uint8Array(await item.file.arrayBuffer());
-      const uploadResult = await supabase.storage.from(storageBucket).upload(storagePath, fileBytes, {
-        upsert: true,
+      const storagePath = buildManagedStoragePath(input.submissionId, item.file.name);
+      const uploadTarget = await prepareManagedUpload({
+        storagePath,
         contentType: item.file.type || "application/octet-stream"
       });
+      const fileBytes = item.file;
 
-      if (uploadResult.error) {
-        throw new Error(uploadResult.error.message);
+      if (uploadTarget.provider === "r2") {
+        const response = await fetch(uploadTarget.uploadUrl!, {
+          method: "PUT",
+          headers: uploadTarget.uploadHeaders,
+          body: fileBytes
+        });
+
+        if (!response.ok) {
+          throw new Error(`فشل رفع الملف ${item.originalName}.`);
+        }
+      } else {
+        const uploadResult = await supabase.storage.from(process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || "student-submissions").uploadToSignedUrl(
+          uploadTarget.storagePath,
+          uploadTarget.token!,
+          fileBytes,
+          {
+            contentType: item.file.type || "application/octet-stream"
+          }
+        );
+
+        if (uploadResult.error) {
+          throw new Error(uploadResult.error.message);
+        }
       }
 
       uploadedStoragePaths.push(storagePath);

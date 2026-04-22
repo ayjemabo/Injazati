@@ -38,17 +38,6 @@ export function UploadPanel({ submissionId, roundId }: UploadPanelProps) {
   }
 
   async function uploadFiles() {
-    if (!hasPublicSupabaseEnv) {
-      setMessage("لا يمكن الرفع الآن لأن إعداد التخزين غير مكتمل.");
-      return;
-    }
-
-    const supabase = createBrowserSupabaseClient();
-    if (!supabase) {
-      setMessage("تعذر الاتصال بخدمة التخزين.");
-      return;
-    }
-
     if (files.length === 0) {
       setMessage("لا توجد ملفات مختارة للرفع.");
       return;
@@ -84,24 +73,52 @@ export function UploadPanel({ submissionId, roundId }: UploadPanelProps) {
     const preparedUploads = Array.isArray(preparePayload.uploads) ? preparePayload.uploads : [];
     const confirmedSubmissionId = String(preparePayload.submissionId ?? submissionId ?? "");
     const uploadedStoragePaths: string[] = [];
+    let supabaseClient = null as ReturnType<typeof createBrowserSupabaseClient>;
 
     try {
       for (let index = 0; index < files.length; index += 1) {
         const file = files[index];
         const upload = preparedUploads[index];
 
-        if (!upload?.storagePath || !upload?.token) {
+        if (!upload?.storagePath || !upload?.provider) {
           throw new Error("بيانات الرفع غير مكتملة.");
         }
 
-        const uploadResult = await supabase.storage
-          .from(process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || "student-submissions")
-          .uploadToSignedUrl(upload.storagePath, upload.token, file, {
-            contentType: file.type || "application/octet-stream"
+        if (upload.provider === "r2") {
+          if (!upload.uploadUrl) {
+            throw new Error("رابط رفع Cloudflare R2 غير مكتمل.");
+          }
+
+          const uploadResponse = await fetch(upload.uploadUrl, {
+            method: "PUT",
+            headers: upload.uploadHeaders ?? {
+              "Content-Type": file.type || "application/octet-stream"
+            },
+            body: file
           });
 
-        if (uploadResult.error) {
-          throw new Error(uploadResult.error.message || `فشل رفع الملف ${getDisplayName(file)}.`);
+          if (!uploadResponse.ok) {
+            throw new Error(`فشل رفع الملف ${getDisplayName(file)}.`);
+          }
+        } else {
+          if (!hasPublicSupabaseEnv) {
+            throw new Error("الرفع عبر Supabase يحتاج مفاتيح عامة مكتملة أو تفعيل R2.");
+          }
+
+          supabaseClient ??= createBrowserSupabaseClient();
+          if (!supabaseClient) {
+            throw new Error("تعذر الاتصال بخدمة التخزين.");
+          }
+
+          const uploadResult = await supabaseClient.storage
+            .from(process.env.NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET || "student-submissions")
+            .uploadToSignedUrl(upload.storagePath, upload.token, file, {
+              contentType: file.type || "application/octet-stream"
+            });
+
+          if (uploadResult.error) {
+            throw new Error(uploadResult.error.message || `فشل رفع الملف ${getDisplayName(file)}.`);
+          }
         }
 
         uploadedStoragePaths.push(upload.storagePath);
@@ -185,7 +202,7 @@ export function UploadPanel({ submissionId, roundId }: UploadPanelProps) {
           <h2>رفع الملفات</h2>
           <p>يمكنك رفع ملفات منفصلة أو اختيار مجلد كامل، بما فيه PDF و ZIP والصور وأي ملفات أخرى.</p>
         </div>
-        <span className="pill">{hasPublicSupabaseEnv ? "Storage مفعل" : "وضع تجريبي"}</span>
+        <span className="pill">رفع مباشر</span>
       </div>
 
       <div className="upload-dropzone">

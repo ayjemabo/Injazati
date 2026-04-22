@@ -6,6 +6,7 @@ import {
   downloadManagedFile,
   prepareManagedUpload
 } from "@/lib/storage";
+import type { SubmissionSubject } from "@/lib/types";
 
 type EnsureSubmissionInput = {
   studentProfileId: string;
@@ -38,6 +39,52 @@ type UploadPreparationInput = {
   }>;
 };
 
+function normalizeStorageSubject(subject?: string | null): SubmissionSubject {
+  if (subject === "chinese") {
+    return "chinese";
+  }
+
+  if (subject === "math") {
+    return "math";
+  }
+
+  return "art";
+}
+
+async function getSubmissionStoragePrefix(submissionId: string) {
+  const supabase = createServerSupabaseClient();
+  if (!supabase) {
+    throw new Error("Supabase server environment is not configured.");
+  }
+
+  const submissionResult = await supabase
+    .from("submissions")
+    .select("round_id")
+    .eq("id", submissionId)
+    .maybeSingle();
+
+  if (submissionResult.error) {
+    throw new Error(submissionResult.error.message);
+  }
+
+  const roundId = submissionResult.data?.round_id;
+  if (!roundId) {
+    return null;
+  }
+
+  const roundResult = await supabase
+    .from("submission_rounds")
+    .select("subject")
+    .eq("id", roundId)
+    .maybeSingle();
+
+  if (roundResult.error) {
+    throw new Error(roundResult.error.message);
+  }
+
+  return normalizeStorageSubject(roundResult.data?.subject);
+}
+
 function detectFileKind(name: string): RegisterFileInput["kind"] {
   const extension = name.split(".").pop()?.toLowerCase() ?? "";
 
@@ -57,10 +104,13 @@ function detectFileKind(name: string): RegisterFileInput["kind"] {
 }
 
 export async function prepareSubmissionUploads(input: UploadPreparationInput) {
+  const storagePrefix = await getSubmissionStoragePrefix(input.submissionId);
   const uploads = [];
 
   for (const file of input.files) {
-    const storagePath = buildManagedStoragePath(input.submissionId, file.clientName || file.originalName);
+    const storagePath = buildManagedStoragePath(input.submissionId, file.clientName || file.originalName, {
+      prefix: storagePrefix ?? undefined
+    });
     const uploadTarget = await prepareManagedUpload({
       storagePath,
       contentType: file.contentType
@@ -345,10 +395,13 @@ export async function uploadSubmissionFiles(input: {
 
   const uploadedStoragePaths: string[] = [];
   const insertedFileIds: string[] = [];
+  const storagePrefix = await getSubmissionStoragePrefix(input.submissionId);
 
   try {
     for (const item of input.files) {
-      const storagePath = buildManagedStoragePath(input.submissionId, item.file.name);
+      const storagePath = buildManagedStoragePath(input.submissionId, item.file.name, {
+        prefix: storagePrefix ?? undefined
+      });
       const uploadTarget = await prepareManagedUpload({
         storagePath,
         contentType: item.file.type || "application/octet-stream"

@@ -44,6 +44,10 @@ function getFileExtension(name: string) {
   return name.includes(".") ? `.${name.split(".").pop()?.toLowerCase()}` : "";
 }
 
+function trimSlashes(value: string) {
+  return value.replace(/^\/+|\/+$/g, "");
+}
+
 function getR2Client() {
   if (!hasR2StorageEnv) {
     throw new Error("Cloudflare R2 environment is not configured.");
@@ -134,8 +138,15 @@ async function streamToUint8Array(stream: unknown): Promise<Uint8Array> {
   throw new Error("Unsupported download stream.");
 }
 
-export function buildManagedStoragePath(submissionId: string, name: string) {
-  const objectKey = `${submissionId}/${Date.now()}-${crypto.randomUUID()}${getFileExtension(name)}`;
+export function buildManagedStoragePath(
+  submissionId: string,
+  name: string,
+  options?: {
+    prefix?: string;
+  }
+) {
+  const pathPrefix = options?.prefix ? `${trimSlashes(options.prefix)}/` : "";
+  const objectKey = `${pathPrefix}${submissionId}/${Date.now()}-${crypto.randomUUID()}${getFileExtension(name)}`;
   return hasR2StorageEnv ? `${R2_PREFIX}${objectKey}` : objectKey;
 }
 

@@ -1,0 +1,1794 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إنجازاتي</title>
+  <link rel="icon" type="image/png" href="images/logo.png">
+  <meta name="description" content="إنجازاتي – منصة لتسجيل ومشاركة إنجازات ومشاركات الطلاب في مدرسة البلد الأمين المتوسطة للموهوبين.">
+  <meta name="keywords" content="إنجازات, مشاركات, مدرسة البلد الأمين المتوسطة للموهوبين, طلاب, مسابقات, بيبراس, كانجارو">
+  <meta name="author" content="مدرسة البلد الأمين المتوسطة للموهوبين">
+  <meta property="og:title" content="إنجازاتي">
+  <meta name="apple-itunes-app" content="app-id=6756132542">
+  <meta property="og:description" content="سجل إنجازات ومشاركات الطلاب في مدرسة البلد الأمين المتوسطة للموهوبين.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="images/logo.png">
+  <meta property="og:locale" content="ar">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Changa:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-1: #f8fafc;
+      --bg-2: #eef2ff;
+      --primary: #1d4ed8;
+      --primary-2: #0ea5e9;
+      --card: rgba(255, 255, 255, 0.9);
+      --text: #0f172a;
+      --muted: #475569;
+      --border: #e2e8f0;
+      --accent: #22c55e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Cairo", system-ui, -apple-system, sans-serif;
+      background: rgb(18, 37, 55);
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 24px;
+      position: relative;
+      overflow-x: hidden;
+    }
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      filter: blur(70px);
+      opacity: 0.3;
+      z-index: -1;
+    }
+    body::before {
+      width: 360px;
+      height: 360px;
+      background: #0ea5e9;
+      top: -60px;
+      right: -40px;
+    }
+    body::after {
+      width: 320px;
+      height: 320px;
+      background: #22c55e;
+      bottom: -80px;
+      left: -40px;
+    }
+    header {
+      max-width: 1100px;
+      margin: 0 auto 20px auto;
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+    .logo {
+      width: 120px;
+      height: 120px;
+      border-radius: 16px;
+      object-fit: contain;
+      border: none;
+      box-shadow: none;
+      background: transparent;
+      padding: 2px;
+      -webkit-mask-image: radial-gradient(circle, #000 78%, transparent 100%);
+      mask-image: radial-gradient(circle, #000 78%, transparent 100%);
+    }
+    .title {
+      font-family: "Changa", "Cairo", sans-serif;
+      font-size: 40px;
+      margin: 0 0 6px 0;
+      color: #e8edf5;
+      letter-spacing: -0.4px;
+    }
+    .subtitle {
+      margin: 0;
+      color: #cfd8e3;
+      line-height: 1.7;
+      max-width: 720px;
+    }
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+      position: relative;
+    }
+    .panel {
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(241,245,249,0.93));
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      border-radius: 18px;
+      padding: 22px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.22);
+    }
+    .panel::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 10% 20%, rgba(14,165,233,0.12), transparent 30%),
+                  radial-gradient(circle at 90% 10%, rgba(34,197,94,0.12), transparent 28%);
+      pointer-events: none;
+    }
+    .panel::after {
+      content: "";
+      position: absolute;
+      top: 10px;
+      inset-inline: 16px;
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #0ea5e9, #22c55e);
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    .panel > * { position: relative; z-index: 1; }
+    .panel h2 {
+      margin: 0 0 12px 0;
+      font-size: 20px;
+      color: #0f172a;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(14,165,233,0.16);
+      color: #0f172a;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    form .field {
+      margin-bottom: 14px;
+    }
+    label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: #0f172a;
+    }
+    input, textarea, button {
+      font-family: inherit;
+    }
+    input[type="text"], input[type="number"], textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      border-radius: 12px;
+      font-size: 15px;
+      background: rgba(255,255,255,0.96);
+      color: var(--text);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: rgba(59, 130, 246, 0.8);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+      transform: translateY(-1px);
+    }
+    textarea {
+      resize: vertical;
+      min-height: 90px;
+    }
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      font-size: 15px;
+      color: var(--text);
+    }
+    .help {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 4px;
+    }
+    .grid {
+      display: grid;
+      gap: 12px;
+    }
+    .grid-2 {
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 8px 10px;
+      background: rgba(255,255,255,0.6);
+      border: 1px solid rgba(226,232,240,0.7);
+      border-radius: 12px;
+    }
+    .search {
+      min-width: 220px;
+      width: 100%;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      background: #e0f2fe;
+      color: #0f172a;
+      border-radius: 999px;
+      border: 1px solid #bae6fd;
+      font-size: 13px;
+      margin: 4px 4px 0 0;
+    }
+    .pill button {
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: #0f172a;
+      font-weight: 700;
+      padding: 0 6px;
+    }
+    .flex {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 12px 16px;
+      border: none;
+      border-radius: 12px;
+      font-weight: 800;
+      letter-spacing: 0.2px;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+    }
+    .btn-primary {
+      background: linear-gradient(120deg, #0ea5e9, #22c55e);
+      color: #fff;
+      box-shadow: 0 12px 26px rgba(14, 165, 233, 0.35);
+    }
+    .btn-secondary {
+      background: rgba(255,255,255,0.92);
+      color: #0f172a;
+      border: 1px solid rgba(226,232,240,0.9);
+    }
+    .btn:hover {
+      transform: translateY(-1.5px);
+      box-shadow: 0 14px 32px rgba(15, 23, 42, 0.14);
+    }
+    .btn:active {
+      transform: translateY(0);
+      box-shadow: none;
+    }
+    .control-bar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+    .entries {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .entry-card {
+      border: 1px solid rgba(226,232,240,0.95);
+      border-radius: 16px;
+      padding: 16px;
+      background: linear-gradient(160deg, #ffffff, #f1f5f9);
+      box-shadow: 0 16px 34px rgba(15, 23, 42, 0.12);
+      display: grid;
+      gap: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+    .entry-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      inset-inline: 12px;
+      height: 3px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #0ea5e9, #22c55e);
+      opacity: 0.8;
+    }
+    .entry-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 15% 20%, rgba(14,165,233,0.08), transparent 40%);
+      pointer-events: none;
+    }
+    .preview-limited {
+      position: relative;
+    }
+    .preview-limited::after {
+      content: "";
+      position: absolute;
+      inset-inline: 0;
+      bottom: 0;
+      height: 60px;
+      background: linear-gradient(180deg, rgba(241,245,249,0), rgba(241,245,249,0.95));
+      pointer-events: none;
+    }
+    .more-link {
+      position: absolute;
+      bottom: 10px;
+      inset-inline-end: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #0ea5e9;
+      font-weight: 700;
+      font-size: 12px;
+      border: none;
+      background: rgba(255,255,255,0.9);
+      border-radius: 10px;
+      padding: 5px 9px;
+      cursor: pointer;
+      box-shadow: 0 6px 14px rgba(15,23,42,0.12);
+    }
+    .folders {
+      display: grid;
+      gap: 12px;
+    }
+    .breadcrumbs {
+      font-weight: 800;
+      color: #0f172a;
+      margin: 6px 0 2px 0;
+    }
+    .folder {
+      border: 1px solid rgba(226,232,240,0.9);
+      border-radius: 14px;
+      background: linear-gradient(180deg, #ffffff, #f8fafc);
+      box-shadow: 0 12px 26px rgba(15, 23, 42, 0.1);
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+    .folder-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .folder-title {
+      font-weight: 800;
+      color: #0f172a;
+      font-size: 18px;
+    }
+    .folder-section {
+      border: 1px dashed rgba(226,232,240,0.8);
+      border-radius: 10px;
+      padding: 10px;
+      background: rgba(248,250,252,0.7);
+      display: grid;
+      gap: 8px;
+    }
+    .folder-section h3 {
+      margin: 0;
+      font-size: 15px;
+      color: #0f172a;
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .names-list {
+      display: grid;
+      gap: 6px;
+    }
+    .name-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: #fff;
+      border: 1px solid rgba(226,232,240,0.9);
+      box-shadow: 0 4px 10px rgba(15, 23, 42, 0.06);
+    }
+    .name-row .info {
+      display: grid;
+      gap: 4px;
+    }
+    .name-row .info .name {
+      font-size: 16px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .name-row .info .meta {
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .actions-inline {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .pdf-list {
+      display: grid;
+      gap: 6px;
+    }
+    .pdf-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(14,165,233,0.2);
+      background: rgba(224, 242, 254, 0.6);
+      color: #0f172a;
+      text-decoration: none;
+      font-weight: 700;
+    }
+    .nav-list {
+      display: grid;
+      gap: 8px;
+    }
+    .nav-btn {
+      width: 100%;
+      text-align: right;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(226,232,240,0.9);
+      background: linear-gradient(90deg, rgba(14,165,233,0.15), rgba(34,197,94,0.08));
+      color: #0f172a;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+    }
+    .nav-btn span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .accordion {
+      border: 1px solid rgba(226,232,240,0.9);
+      border-radius: 14px;
+      background: linear-gradient(180deg, #ffffff, #f8fafc);
+      box-shadow: 0 12px 26px rgba(15, 23, 42, 0.1);
+      overflow: hidden;
+    }
+    .accordion-header {
+      cursor: pointer;
+      padding: 12px 14px;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(14,165,233,0.08);
+    }
+    .accordion-body {
+      padding: 12px 14px;
+      display: grid;
+      gap: 10px;
+    }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    @media (max-width: 960px) {
+      .card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 640px) {
+      .card-grid { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+    }
+    .entry-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .name {
+      font-size: 19px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .date {
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .section-title {
+      font-weight: 700;
+      font-size: 14px;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+    .text {
+      color: #0f172a;
+      line-height: 1.6;
+      font-size: 14px;
+      white-space: pre-line;
+    }
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 12px;
+      border: 1px dashed var(--border);
+      border-radius: 12px;
+      background: #fff;
+    }
+    .hint {
+      text-align: center;
+      color: var(--muted);
+      margin-top: 16px;
+      font-size: 14px;
+    }
+    .toast {
+      position: fixed;
+      top: 16px;
+      inset-inline: 0;
+      display: flex;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 1000;
+    }
+    .toast-inner {
+      pointer-events: auto;
+      background: rgba(15, 23, 42, 0.9);
+      color: #e2e8f0;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid rgba(226,232,240,0.3);
+      box-shadow: 0 12px 26px rgba(0, 0, 0, 0.25);
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 260px;
+      justify-content: space-between;
+      animation: fadeIn 0.2s ease;
+    }
+    .toast button {
+      border: none;
+      background: rgba(255,255,255,0.12);
+      color: #e2e8f0;
+      border-radius: 10px;
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .search {
+      flex: 1;
+      min-width: 200px;
+    }
+    .hidden { display: none !important; }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+    }
+    .meta-box {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+    }
+    .detail-page {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      gap: 14px;
+    }
+    .detail-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .back-btn {
+      border: 1px solid var(--border);
+      background: #fff;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    @media (max-width: 640px) {
+      body { padding: 16px; }
+      header { text-align: center; }
+      .controls { grid-template-columns: 1fr; }
+      .search { width: 100%; min-width: 0; }
+      .entry-head { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+  <body>
+    <header>
+      <div class="brand" style="flex-direction: column; align-items: flex-end;">
+        <div style="display:flex; align-items:center; gap:14px;">
+          <img class="logo" src="images/logo.png" alt="شعار المدرسة" style="width:140px; height:140px;">
+        </div>
+        <div style="color:#e8edf5; font-weight:800; line-height:1.6; margin-top:6px;">شراكة مع مدارس الموهوبين بمكة</div>
+      </div>
+      <p class="title">إنجازاتي</p>
+      <p class="subtitle">
+        اجمع أسماء الطلاب (باللغة العربية) مع مشاركات هذا العام والسنوات السابقة في مكان واحد مرتب.
+      </p>
+    </header>
+
+    <main>
+      <section class="panel">
+        <h2>إدخال مشاركة جديدة</h2>
+      <form id="entryForm">
+        <div class="field">
+          <label for="studentName">اسم الطالب الرباعي</label>
+          <input id="studentName" name="studentName" type="text" dir="rtl" required
+                 placeholder="مثال: محمد أحمد">
+          <div class="help">اكتب الاسم بالعربية (المقاطع حسب الحاجة).</div>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="field">
+            <label for="school">المدرسة</label>
+            <input id="school" name="school" type="text" dir="rtl" required placeholder="اكتب اسم المدرسة بحرية">
+            <div class="help">اكتب أي مدرسة.</div>
+          </div>
+          <div class="field">
+            <label for="level">المرحلة</label>
+            <select id="level" name="level" required>
+              <option value="">اختر المرحلة</option>
+              <option value="ابتدائي">ابتدائي</option>
+              <option value="متوسط">متوسط</option>
+              <option value="ثانوي">ثانوي</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>الصف</label>
+            <div class="grid grid-2">
+              <select id="gradeYear" name="gradeYear" required>
+                <option value="">السنة</option>
+              </select>
+              <select id="gradeClass" name="gradeClass" required>
+                <option value="">الفصل</option>
+              </select>
+            </div>
+            <div class="help">مثال: أول / ٣ أو ثاني / ٢.</div>
+          </div>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="field">
+            <label for="interests">اهتماماتك</label>
+            <input id="interests" name="interests" type="text" dir="rtl" placeholder="مثال: برمجة، روبوت، رياضيات">
+            <div class="help">اكتب الهوايات أو المجالات المفضلة.</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="bio">معلومات عنك</label>
+          <textarea id="bio" name="bio" dir="rtl" placeholder="اكتب نبذة قصيرة عنك (مثال: شغوف بالمسابقات العلمية)"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="currentParticipation">مشاركات هذا العام</label>
+          <textarea id="currentParticipation" name="currentParticipation" dir="rtl" required
+                    placeholder="مثال: مسابقة بيبراس – فريق النجوم"></textarea>
+          <div class="help">يمكن كتابة أكثر من مشاركة كلٌ في سطر جديد.</div>
+        </div>
+
+        <div class="field">
+          <label>مشاركات السنوات السابقة</label>
+          <div class="grid grid-2">
+            <div>
+              <input id="pastYear" type="number" min="2000" max="2099"
+                     placeholder="السنة (مثال: 2023)">
+            </div>
+            <div>
+              <input id="pastDescription" type="text" dir="rtl"
+                     placeholder="وصف المشاركة السابقة">
+            </div>
+          </div>
+          <a href="videos/sharh1.mp4" target="_blank" style="display:inline-block; margin-top:6px; color:#0ea5e9; font-weight:700; text-decoration:none;">فيديو شرح المشاركات السابقة (مهم)</a>
+          <div class="flex" style="margin-top:8px;">
+            <button type="button" class="btn btn-secondary" id="addPast">إضافة للسابق</button>
+            <span class="help">أضف ما تشاء من مشاركات سابقة قبل حفظ الطالب.</span>
+          </div>
+          <div id="pastList" class="flex" style="margin-top:6px;"></div>
+        </div>
+
+        <div class="field">
+          <label>ملفات PDF (اختياري – حد أقصى ١٠)</label>
+          <input id="pdfInput" type="file" accept="application/pdf" multiple>
+          <div class="help">يفضل دمج جميع الشهادات/الملفات في ملف PDF واحد.</div>
+          <div id="pdfPreview" class="pdf-list" style="margin-top:8px;"></div>
+        </div>
+
+        <div class="hint" style="margin-top:8px; text-align:right;">يمكنك تعديل وحذف مشاركاتك من البطاقات مباشرة.</div>
+        <div class="flex" style="justify-content:flex-start; margin-top:14px;">
+          <button type="submit" class="btn btn-primary" id="saveBtn">حفظ المشاركة</button>
+          <button type="button" class="btn btn-secondary" id="resetForm">تفريغ الحقول</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="controls">
+        <h2 style="margin:0;">قائمة المشاركين</h2>
+        <input class="search" id="search" type="text" dir="rtl" placeholder="بحث بالاسم...">
+        <select id="sortSelect" class="search" style="max-width:220px;">
+          <option value="newest">ترتيب: الأحدث</option>
+          <option value="oldest">ترتيب: الأقدم</option>
+          <option value="mostPrevious">ترتيب: الأكثر في السنوات السابقة</option>
+        </select>
+        <div class="view-toggle">
+          <button type="button" class="btn btn-secondary" id="viewAccordion">عرض مجلدات</button>
+          <button type="button" class="btn btn-secondary" id="viewAll">عرض كل البطاقات</button>
+        </div>
+      </div>
+      <div id="entries" class="entries"></div>
+      <div id="empty" class="empty" style="display:none;">لم تتم إضافة مشاركات بعد.</div>
+    </section>
+  </main>
+
+  <footer style="max-width:1100px; margin: 20px auto 0 auto; color:#cfd8e3; text-align:center; font-size:14px; padding:12px 0;">
+    <div>صُنِع بواسطة البراء الحربي وفراس الزهراني</div>
+    <div>للدعم تواصل على
+      <a href="mailto:albaraa8588@hotmail.com?subject=سؤال/دعم&body=من:%20{اكتب%20اسمك%20هنا}" style="color:#0ea5e9; text-decoration:none; font-weight:700;">
+        بريد الأسئلة/الدعم
+      </a>
+    </div>
+  </footer>
+  <section id="detailPage" class="panel detail-page hidden" aria-live="polite">
+    <div class="detail-header">
+      <div>
+        <div class="name" id="detailName"></div>
+        <div class="date" id="detailCreated"></div>
+      </div>
+      <div class="flex">
+        <button type="button" class="back-btn" id="backToList">العودة للقائمة</button>
+      </div>
+    </div>
+    <div class="meta-grid">
+      <div class="meta-box">
+        <div class="section-title">المدرسة</div>
+        <div class="text" id="detailSchool"></div>
+      </div>
+      <div class="meta-box">
+        <div class="section-title">اهتمامات</div>
+        <div class="text" id="detailInterests"></div>
+      </div>
+      <div class="meta-box">
+        <div class="section-title">الصف</div>
+        <div class="text" id="detailGrade"></div>
+      </div>
+    </div>
+    <div>
+      <div class="section-title">معلومات عن الطالب</div>
+      <div class="text" id="detailBio"></div>
+    </div>
+    <div>
+      <div class="section-title">مشاركات هذا العام</div>
+      <div class="text" id="detailCurrent"></div>
+    </div>
+    <div>
+      <div class="section-title">مشاركات السنوات السابقة</div>
+      <div class="grid" id="detailPast"></div>
+    </div>
+    <div>
+      <div class="section-title">ملفات (PDF)</div>
+      <div class="pdf-list" id="detailPdfs"></div>
+    </div>
+  </section>
+
+  <div id="toast" class="toast hidden" aria-live="polite">
+    <div class="toast-inner">
+      <span id="toastMessage">تم التسليم بنجاح</span>
+      <button id="toastDismiss" type="button">إغلاق</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const form = document.getElementById("entryForm");
+    const nameInput = document.getElementById("studentName");
+    const schoolSelect = document.getElementById("school");
+    const levelSelect = document.getElementById("level");
+    const gradeYearSelect = document.getElementById("gradeYear");
+    const gradeClassSelect = document.getElementById("gradeClass");
+    const currentInput = document.getElementById("currentParticipation");
+    const pastYearInput = document.getElementById("pastYear");
+    const pastDescInput = document.getElementById("pastDescription");
+    const pastList = document.getElementById("pastList");
+    const pdfInput = document.getElementById("pdfInput");
+    const pdfPreview = document.getElementById("pdfPreview");
+    let selectedFiles = [];
+    let existingPdfs = [];
+    const entriesContainer = document.getElementById("entries");
+    const emptyState = document.getElementById("empty");
+    const searchInput = document.getElementById("search");
+    const sortSelect = document.getElementById("sortSelect");
+    const resetFormButton = document.getElementById("resetForm");
+    const interestsInput = document.getElementById("interests");
+    const bioInput = document.getElementById("bio");
+    const saveBtn = document.getElementById("saveBtn");
+    const detailPage = document.getElementById("detailPage");
+    const backToListBtn = document.getElementById("backToList");
+    const detailName = document.getElementById("detailName");
+    const detailCreated = document.getElementById("detailCreated");
+    const detailInterests = document.getElementById("detailInterests");
+    const detailSchool = document.getElementById("detailSchool");
+    const detailGrade = document.getElementById("detailGrade");
+    const detailBio = document.getElementById("detailBio");
+    const detailCurrent = document.getElementById("detailCurrent");
+    const detailPast = document.getElementById("detailPast");
+    const detailPdfs = document.getElementById("detailPdfs");
+    const mainView = document.querySelector("main");
+    const toast = document.getElementById("toast");
+    const toastMessage = document.getElementById("toastMessage");
+    const toastDismiss = document.getElementById("toastDismiss");
+
+    let pastEntries = [];
+    let records = [];
+    let editingId = null;
+    let viewState = { stage: "levels", levelName: null, school: null, year: null, classLabel: null };
+    let viewMode = "all"; // "accordion" or "all"
+
+    const SUPABASE_URL = "https://qsebgpnqiwkhipxionyf.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFzZWJncG5xaXdraGlweGlvbnlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ4NjAyMTAsImV4cCI6MjA4MDQzNjIxMH0.T2V1ZetdrGvZ5fNSZVBGY52FyQ0YkCgsnWE-SjUXVig";
+    const OWNER_ID = getOwnerId();
+    let supabaseClient = null;
+
+    function getOwnerId() {
+      const KEY = "schoolParticipationsOwner";
+      const existing = localStorage.getItem(KEY);
+      if (existing) return existing;
+      const fresh = crypto.randomUUID ? crypto.randomUUID() : `owner-${Date.now()}-${Math.random()}`;
+      localStorage.setItem(KEY, fresh);
+      return fresh;
+    }
+
+    function setupSupabase() {
+      const hasSupabaseLib = typeof window.supabase !== "undefined";
+      const urlReady = SUPABASE_URL.startsWith("https://") && !SUPABASE_URL.includes("YOUR_PROJECT");
+      const keyReady = SUPABASE_ANON_KEY && !SUPABASE_ANON_KEY.includes("YOUR_SUPABASE_ANON_KEY");
+      if (hasSupabaseLib && urlReady && keyReady) {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+          global: {
+            headers: { "x-owner-id": OWNER_ID }
+          }
+        });
+      }
+      return supabaseClient;
+    }
+
+    function isSupabaseReady() {
+      return Boolean(supabaseClient);
+    }
+
+    function loadLocalRecords() {
+      try {
+        const saved = localStorage.getItem("schoolParticipations");
+        return saved ? JSON.parse(saved) : [];
+      } catch (err) {
+        console.error("Failed to read localStorage", err);
+        return [];
+      }
+    }
+
+    function saveLocalRecords() {
+      try {
+        localStorage.setItem("schoolParticipations", JSON.stringify(records));
+      } catch (err) {
+        console.error("Failed to save localStorage", err);
+      }
+    }
+
+    function formatDate(iso) {
+      const date = new Date(iso || Date.now());
+      if (Number.isNaN(date.getTime())) return "—";
+      const datePart = date.toLocaleDateString("ar", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+      });
+      const timePart = date.toLocaleTimeString("ar", {
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+      return `${datePart} • ${timePart}`;
+    }
+
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function setMultiline(el, text, fallback = "—") {
+      if (!text) {
+        el.textContent = fallback;
+        return;
+      }
+      el.innerHTML = escapeHtml(text).replace(/\n/g, "<br>");
+    }
+
+    function formatGrade(year, klass) {
+      const yearMap = { 1: "أول", 2: "ثاني", 3: "ثالث", 4: "رابع", 5: "خامس", 6: "سادس" };
+      const y = Number(year);
+      const k = Number(klass);
+      if (!yearMap[y] && !k) return "غير محدد";
+      const kLabel = k ? ` / ${k}` : "";
+      return `${yearMap[y] || "غير محدد"}${kLabel}`;
+    }
+
+    function pdfDisplay(item, idx) {
+      if (!item) return null;
+      if (typeof item === "string") {
+        const raw = item.split("/").pop() || `ملف ${idx + 1}`;
+        const clean = raw.split("?")[0] || raw;
+        return { url: item, name: clean };
+      }
+      if (item.file) {
+        return { url: null, name: item.file.name };
+      }
+      if (item.url || item.name) {
+        const base = item.name || (item.url ? item.url.split("/").pop() : `ملف ${idx + 1}`);
+        const clean = (base || `ملف ${idx + 1}`).split("?")[0] || base;
+        return { url: item.url || null, name: clean };
+      }
+      return null;
+    }
+
+    function renderPdfPreview(items = []) {
+      pdfPreview.innerHTML = "";
+      if (!items.length) {
+        const span = document.createElement("div");
+        span.className = "help";
+        span.textContent = "لا توجد ملفات مرفقة حالياً.";
+        pdfPreview.appendChild(span);
+        return;
+      }
+      items.forEach((item, idx) => {
+        const info = pdfDisplay(item, idx);
+        if (!info) return;
+        const row = document.createElement("div");
+        row.style.display = "flex";
+        row.style.alignItems = "center";
+        row.style.gap = "8px";
+        let content;
+        if (info.url) {
+          content = document.createElement("a");
+          content.className = "pdf-link";
+          content.href = info.url;
+          content.target = "_blank";
+          content.rel = "noopener noreferrer";
+          content.textContent = info.name || `ملف ${idx + 1}`;
+        } else {
+          content = document.createElement("div");
+          content.className = "pdf-link";
+          content.style.cursor = "default";
+          content.textContent = info.name || `ملف ${idx + 1}`;
+        }
+        row.appendChild(content);
+
+        const delBtn = document.createElement("button");
+        delBtn.type = "button";
+        delBtn.className = "btn btn-secondary";
+        delBtn.style.padding = "8px 10px";
+        delBtn.textContent = "حذف";
+        delBtn.addEventListener("click", () => {
+          if (item.type === "existing") {
+            existingPdfs = existingPdfs.filter((_, i) => i !== item._idx);
+          } else if (item.type === "new") {
+            selectedFiles = selectedFiles.filter((_, i) => i !== item._idx);
+          }
+          pdfInput.value = "";
+          renderPdfPreview(buildPdfPreviewList());
+        });
+        row.appendChild(delBtn);
+
+        pdfPreview.appendChild(row);
+      });
+    }
+
+    function buildPdfPreviewList() {
+      const existing = (existingPdfs || []).map((p, idx) => ({ ...p, type: "existing", _idx: idx }));
+      const news = (selectedFiles || []).map((f, idx) => ({ type: "new", _idx: idx, file: f }));
+      return [...existing, ...news];
+    }
+
+    async function uploadPdfs(files) {
+      if (!isSupabaseReady()) return [];
+      const bucket = "pdfs";
+      const uploads = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (!file || file.type !== "application/pdf") continue;
+        if (file.size > 15 * 1024 * 1024) { // 15MB guard
+          alert("حجم الملف أكبر من 15MB، يرجى تقليل الحجم.");
+          continue;
+        }
+        const path = `${OWNER_ID}/${Date.now()}-${i}-${file.name.replace(/\s+/g, "_")}`;
+        const { error } = await supabaseClient.storage.from(bucket).upload(path, file, { upsert: false });
+        if (error) {
+          console.error("Supabase upload error:", error.message);
+          alert(`تعذر رفع الملف إلى السيرفر: ${error.message || ""}`.trim());
+          continue;
+        }
+        const { data: pub } = supabaseClient.storage.from(bucket).getPublicUrl(path);
+        if (pub?.publicUrl) uploads.push(pub.publicUrl);
+      }
+      return uploads;
+    }
+
+    function updateGradeOptions() {
+      const level = levelSelect.value;
+      const maxYear = level === "ابتدائي" ? 6 : 3;
+      const current = gradeYearSelect.value;
+      gradeYearSelect.innerHTML = '<option value="">السنة</option>';
+      const labels = { 1: "أول", 2: "ثاني", 3: "ثالث", 4: "رابع", 5: "خامس", 6: "سادس" };
+      for (let i = 1; i <= maxYear; i++) {
+        const opt = document.createElement("option");
+        opt.value = String(i);
+        opt.textContent = labels[i];
+        gradeYearSelect.appendChild(opt);
+      }
+      if (current && Number(current) <= maxYear) {
+        gradeYearSelect.value = current;
+      }
+    }
+
+    function updateClassOptions() {
+      const current = gradeClassSelect.value;
+      gradeClassSelect.innerHTML = '<option value="">الفصل</option>';
+      for (let i = 1; i <= 10; i++) {
+        const opt = document.createElement("option");
+        opt.value = String(i);
+        opt.textContent = i.toString();
+        gradeClassSelect.appendChild(opt);
+      }
+      if (current && Number(current) <= 10) {
+        gradeClassSelect.value = current;
+      }
+    }
+
+    function normalizeRecord(row) {
+      if (!row) return null;
+      return {
+        id: row.id ?? row.localId ?? Date.now(),
+        name: row.name || "",
+        current: row.current || "",
+        interests: row.interests || "",
+        bio: row.bio || "",
+        school: row.school || "",
+        level: row.level || "",
+        gradeYear: row.grade_year ?? row.gradeYear ?? row.grade ?? null,
+        gradeClass: row.grade_class ?? row.gradeClass ?? null,
+        pdfs: Array.isArray(row.pdfs) ? row.pdfs : [],
+        ownerId: row.owner_id ?? row.ownerId ?? null,
+        previous: Array.isArray(row.previous) ? row.previous : [],
+        createdAt: row.createdAt || row.created_at || new Date().toISOString()
+      };
+    }
+
+    async function fetchRemoteRecords() {
+      if (!isSupabaseReady()) return null;
+      const { data, error } = await supabaseClient
+        .from("participants")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) {
+        console.error("Supabase fetch error:", error.message);
+        return null;
+      }
+      return (data || []).map(normalizeRecord);
+    }
+
+    async function insertRemoteRecord(record) {
+      if (!isSupabaseReady()) return null;
+      const payload = {
+        ...record,
+        created_at: record.createdAt,
+        grade_year: record.gradeYear,
+        grade_class: record.gradeClass,
+        pdfs: record.pdfs,
+        owner_id: OWNER_ID
+      };
+      delete payload.id;
+      delete payload.gradeYear;
+      delete payload.gradeClass;
+      delete payload.createdAt;
+      delete payload.ownerId;
+      const { data, error } = await supabaseClient
+        .from("participants")
+        .insert(payload)
+        .select()
+        .single();
+      if (error) {
+        console.error("Supabase insert error:", error.message);
+        alert("تعذر الحفظ للسيرفر، سيتم الحفظ محلياً مؤقتاً.");
+        return null;
+      }
+      return normalizeRecord(data);
+    }
+
+    async function updateRemoteRecord(record) {
+      if (!isSupabaseReady()) return null;
+      const payload = {
+        ...record,
+        grade_year: record.gradeYear,
+        grade_class: record.gradeClass,
+        created_at: record.createdAt,
+        pdfs: record.pdfs,
+        owner_id: OWNER_ID
+      };
+      delete payload.gradeYear;
+      delete payload.gradeClass;
+      delete payload.createdAt;
+      delete payload.ownerId;
+      const { data, error } = await supabaseClient
+        .from("participants")
+        .update(payload)
+        .eq("id", record.id)
+        .eq("owner_id", OWNER_ID)
+        .select()
+        .single();
+      if (error) {
+        console.error("Supabase update error:", error.message);
+        alert("تعذر التحديث على السيرفر (تحقق من الصلاحيات/المالك).");
+        return null;
+      }
+      return normalizeRecord(data);
+    }
+
+    async function deleteAllRemoteRecords() {
+      if (!isSupabaseReady()) return null;
+      const { error } = await supabaseClient
+        .from("participants")
+        .delete()
+        .eq("owner_id", OWNER_ID);
+      if (error) {
+        console.error("Supabase delete error:", error.message);
+        alert("تعذر مسح السجلات من السيرفر.");
+        return false;
+      }
+      return true;
+    }
+
+    async function deleteRemoteRecord(id) {
+      if (!isSupabaseReady()) return null;
+      const { error } = await supabaseClient
+        .from("participants")
+        .delete()
+        .eq("id", id)
+        .eq("owner_id", OWNER_ID);
+      if (error) {
+        console.error("Supabase delete error:", error.message);
+        alert("تعذر حذف السجل من السيرفر (تحقق من الصلاحيات/المالك).");
+        return false;
+      }
+      return true;
+    }
+
+    function renderPastList() {
+      pastList.innerHTML = "";
+      if (!pastEntries.length) {
+        const span = document.createElement("span");
+        span.className = "help";
+        span.textContent = "لا توجد مشاركات سابقة مضافة بعد.";
+        pastList.appendChild(span);
+        return;
+      }
+      pastEntries.forEach((item, idx) => {
+        const pill = document.createElement("div");
+        pill.className = "pill";
+        pill.innerHTML = `<strong>${item.year}</strong> — ${item.text}`;
+        const removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.textContent = "×";
+        removeBtn.title = "حذف";
+        removeBtn.addEventListener("click", () => {
+          pastEntries = pastEntries.filter((_, i) => i !== idx);
+          renderPastList();
+        });
+        pill.appendChild(removeBtn);
+        pastList.appendChild(pill);
+      });
+    }
+
+    function renderEntries(filter = "") {
+      entriesContainer.innerHTML = "";
+      let filtered = records.filter(r =>
+        (r.name || "").toLowerCase().includes(filter.toLowerCase())
+      );
+      const sortVal = sortSelect.value;
+      filtered = filtered.slice().sort((a, b) => {
+        if (sortVal === "oldest") {
+          return new Date(a.createdAt) - new Date(b.createdAt);
+        }
+        if (sortVal === "mostPrevious") {
+          const ac = Array.isArray(a.previous) ? a.previous.length : 0;
+          const bc = Array.isArray(b.previous) ? b.previous.length : 0;
+          return bc - ac || new Date(b.createdAt) - new Date(a.createdAt);
+        }
+        // default newest
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+      if (!filtered.length) {
+        emptyState.style.display = "block";
+        return;
+      }
+      emptyState.style.display = "none";
+
+      const grouped = {};
+      filtered.forEach(rec => {
+        const level = rec.level || "مرحلة غير محددة";
+        const school = rec.school || "المدرسة غير محددة";
+        const yearLabel = rec.gradeYear ? formatGrade(rec.gradeYear, rec.gradeClass).split(" / ")[0] : "السنة غير محددة";
+        const classLabel = rec.gradeClass ? `فصل ${rec.gradeClass}` : "فصل غير محدد";
+        grouped[level] ??= {};
+        grouped[level][school] ??= {};
+        grouped[level][school][yearLabel] ??= {};
+        grouped[level][school][yearLabel][classLabel] ??= [];
+        grouped[level][school][yearLabel][classLabel].push(rec);
+      });
+
+      const wrapper = document.createElement("div");
+      wrapper.className = "folders";
+
+      const renderCards = (list) => {
+        const grid = document.createElement("div");
+        grid.className = "card-grid";
+        list.forEach(rec => {
+          const card = document.createElement("article");
+          card.className = "entry-card";
+
+          const head = document.createElement("div");
+          head.className = "entry-head";
+          head.innerHTML = `<div class="name">${rec.name || "طالب بدون اسم"}</div><div class="date">${formatDate(rec.createdAt)}</div>`;
+          card.appendChild(head);
+
+          const metaLine = document.createElement("div");
+          metaLine.className = "help";
+        const schoolText = rec.school ? `المدرسة: ${rec.school}` : "المدرسة: غير محدد";
+        const levelText = rec.level ? `المرحلة: ${rec.level}` : "";
+        const gradeText = `الصف: ${formatGrade(rec.gradeYear, rec.gradeClass)}`;
+        const interestsText = rec.interests ? `اهتمامات: ${rec.interests}` : "";
+        metaLine.textContent = [schoolText, levelText, gradeText, interestsText].filter(Boolean).join(" • ");
+        card.appendChild(metaLine);
+
+          const currentSec = document.createElement("div");
+          const currentText = document.createElement("div");
+          currentSec.innerHTML = `<div class="section-title">مشاركات هذا العام</div>`;
+          currentText.className = "text";
+          setMultiline(currentText, rec.current);
+          currentSec.appendChild(currentText);
+          card.appendChild(currentSec);
+
+          const previousSec = document.createElement("div");
+          previousSec.innerHTML = `<div class="section-title">مشاركات السنوات السابقة</div>`;
+          const previousList = Array.isArray(rec.previous) ? rec.previous : [];
+          if (previousList.length) {
+            const listWrap = document.createElement("div");
+            const limited = previousList.slice(0, 5);
+            listWrap.className = "grid";
+            limited.forEach(item => {
+              const pill = document.createElement("div");
+              pill.className = "pill";
+              pill.style.border = "1px solid #d9f99d";
+              pill.style.background = "#f7fee7";
+              pill.innerHTML = `<strong>${item.year}</strong> — ${escapeHtml(item.text)}`;
+              listWrap.appendChild(pill);
+            });
+            if (previousList.length > 5) {
+              listWrap.classList.add("preview-limited");
+              const moreBtn = document.createElement("button");
+              moreBtn.type = "button";
+              moreBtn.className = "more-link";
+              moreBtn.textContent = "المزيد من المشاركات السابقة...";
+              moreBtn.style.position = "static";
+              moreBtn.style.marginTop = "6px";
+              moreBtn.addEventListener("click", () => {
+                location.hash = `student-${rec.id}`;
+              });
+              previousSec.appendChild(moreBtn);
+            }
+            previousSec.appendChild(listWrap);
+          } else {
+            const span = document.createElement("div");
+            span.className = "help";
+            span.textContent = "لا توجد مشاركات سابقة.";
+            previousSec.appendChild(span);
+          }
+          card.appendChild(previousSec);
+
+          if (rec.pdfs && rec.pdfs.length) {
+            const pdfSec = document.createElement("div");
+            pdfSec.innerHTML = `<div class="section-title">ملفات (PDF)</div>`;
+            const pdfList = document.createElement("div");
+            pdfList.className = "pdf-list";
+            rec.pdfs.forEach((item, idx) => {
+              const info = pdfDisplay(item, idx);
+              if (!info) return;
+              const link = document.createElement("a");
+              link.className = "pdf-link";
+              link.href = info.url;
+              link.target = "_blank";
+              link.rel = "noopener noreferrer";
+              link.textContent = info.name || `ملف ${idx + 1}`;
+              pdfList.appendChild(link);
+            });
+            pdfSec.appendChild(pdfList);
+            card.appendChild(pdfSec);
+          }
+
+          const actions = document.createElement("div");
+          actions.className = "flex";
+          const detailBtn = document.createElement("button");
+          detailBtn.type = "button";
+          detailBtn.className = "btn btn-secondary";
+          detailBtn.textContent = "عرض صفحة كاملة";
+          detailBtn.addEventListener("click", () => {
+            location.hash = `student-${rec.id}`;
+          });
+          actions.appendChild(detailBtn);
+
+          if (!rec.ownerId || rec.ownerId === OWNER_ID) {
+            const editBtn = document.createElement("button");
+            editBtn.type = "button";
+            editBtn.className = "btn btn-primary";
+            editBtn.textContent = "تعديل";
+            editBtn.addEventListener("click", () => startEdit(rec));
+            actions.appendChild(editBtn);
+
+            const deleteBtn = document.createElement("button");
+            deleteBtn.type = "button";
+            deleteBtn.className = "btn btn-secondary";
+            deleteBtn.textContent = "حذف";
+            deleteBtn.addEventListener("click", () => deleteRecord(rec.id, rec.ownerId));
+            actions.appendChild(deleteBtn);
+          }
+
+          card.appendChild(actions);
+          grid.appendChild(card);
+        });
+        return grid;
+      };
+
+      if (viewMode === "all") {
+        const allGrid = renderCards(filtered);
+        entriesContainer.appendChild(allGrid);
+        return;
+      }
+
+      // Render based on viewState (accordion)
+      if (viewState.stage === "levels") {
+        const list = document.createElement("div");
+        list.className = "nav-list";
+        Object.keys(grouped).forEach(levelName => {
+          const btn = document.createElement("button");
+          btn.className = "nav-btn";
+          const count = Object.values(grouped[levelName]).reduce((acc, sch) =>
+            acc + Object.values(sch).reduce((yrAcc, yr) =>
+              yrAcc + Object.values(yr).reduce((clsAcc, cls) => clsAcc + cls.length, 0), 0), 0);
+          btn.innerHTML = `<div>${levelName}</div><span>${count} مشارك</span>`;
+          btn.addEventListener("click", () => {
+            viewState = { stage: "schools", levelName, school: null, year: null, classLabel: null };
+            renderEntries(filter);
+          });
+          list.appendChild(btn);
+        });
+        wrapper.appendChild(list);
+      } else if (viewState.stage === "schools" && grouped[viewState.levelName]) {
+        const back = document.createElement("button");
+        back.className = "btn btn-secondary";
+        back.textContent = "رجوع للمراحل";
+        back.addEventListener("click", () => {
+          viewState = { stage: "levels", levelName: null, school: null, year: null, classLabel: null };
+          renderEntries(filter);
+        });
+        const bc = document.createElement("div");
+        bc.className = "breadcrumbs";
+        bc.textContent = "هذا: المدارس";
+        wrapper.appendChild(bc);
+        wrapper.appendChild(back);
+        const list = document.createElement("div");
+        list.className = "nav-list";
+        Object.keys(grouped[viewState.levelName]).forEach(schoolName => {
+          const btn = document.createElement("button");
+          btn.className = "nav-btn";
+          const count = Object.values(grouped[viewState.levelName][schoolName]).reduce((acc, yr) => acc + Object.values(yr).reduce((a, cls) => a + cls.length, 0), 0);
+          btn.innerHTML = `<div>${schoolName}</div><span>${count} مشارك</span>`;
+          btn.addEventListener("click", () => {
+            viewState = { stage: "years", levelName: viewState.levelName, school: schoolName, year: null, classLabel: null };
+            renderEntries(filter);
+          });
+          list.appendChild(btn);
+        });
+        wrapper.appendChild(list);
+      } else if (viewState.stage === "years" && grouped[viewState.levelName]?.[viewState.school]) {
+        const back = document.createElement("button");
+        back.className = "btn btn-secondary";
+        back.textContent = "رجوع للمدارس";
+        back.addEventListener("click", () => {
+          viewState = { stage: "schools", levelName: viewState.levelName, school: null, year: null, classLabel: null };
+          renderEntries(filter);
+        });
+        const bc = document.createElement("div");
+        bc.className = "breadcrumbs";
+        bc.textContent = "هذا: السنوات";
+        wrapper.appendChild(bc);
+        wrapper.appendChild(back);
+        const list = document.createElement("div");
+        list.className = "nav-list";
+        Object.keys(grouped[viewState.levelName][viewState.school]).forEach(yearLabel => {
+          const btn = document.createElement("button");
+          btn.className = "nav-btn";
+          const count = Object.values(grouped[viewState.levelName][viewState.school][yearLabel]).reduce((a, cls) => a + cls.length, 0);
+          btn.innerHTML = `<div>${yearLabel}</div><span>${count} مشارك</span>`;
+          btn.addEventListener("click", () => {
+            viewState = { stage: "classes", levelName: viewState.levelName, school: viewState.school, year: yearLabel, classLabel: null };
+            renderEntries(filter);
+          });
+          list.appendChild(btn);
+        });
+        wrapper.appendChild(list);
+      } else if (viewState.stage === "classes" && grouped[viewState.levelName]?.[viewState.school]?.[viewState.year]) {
+        const back = document.createElement("button");
+        back.className = "btn btn-secondary";
+        back.textContent = "رجوع للسنوات";
+        back.addEventListener("click", () => {
+          viewState = { stage: "years", levelName: viewState.levelName, school: viewState.school, year: null, classLabel: null };
+          renderEntries(filter);
+        });
+        const bc = document.createElement("div");
+        bc.className = "breadcrumbs";
+        bc.textContent = "هذا: الفصول";
+        wrapper.appendChild(bc);
+        wrapper.appendChild(back);
+        const list = grouped[viewState.levelName][viewState.school][viewState.year];
+        Object.keys(list).forEach(classLabel => {
+          const btn = document.createElement("button");
+          btn.className = "nav-btn";
+          const count = list[classLabel].length;
+          btn.innerHTML = `<div>${classLabel}</div><span>${count} مشارك</span>`;
+          btn.addEventListener("click", () => {
+            viewState = { stage: "cards", levelName: viewState.levelName, school: viewState.school, year: viewState.year, classLabel };
+            renderEntries(filter);
+          });
+          wrapper.appendChild(btn);
+        });
+      } else if (viewState.stage === "cards") {
+        const back = document.createElement("button");
+        back.className = "btn btn-secondary";
+        back.textContent = "رجوع للفصول";
+        back.addEventListener("click", () => {
+          viewState = { stage: "classes", levelName: viewState.levelName, school: viewState.school, year: viewState.year, classLabel: null };
+          renderEntries(filter);
+        });
+        const bc = document.createElement("div");
+        bc.className = "breadcrumbs";
+        bc.textContent = "هذا: البطاقات";
+        wrapper.appendChild(bc);
+        wrapper.appendChild(back);
+        const list = grouped[viewState.levelName]?.[viewState.school]?.[viewState.year]?.[viewState.classLabel] || [];
+        wrapper.appendChild(renderCards(list));
+      }
+
+      entriesContainer.appendChild(wrapper);
+    }
+
+    function resetFormFields() {
+      form.reset();
+      interestsInput.value = "";
+      bioInput.value = "";
+      pdfInput.value = "";
+      selectedFiles = [];
+      existingPdfs = [];
+      pastEntries = [];
+      editingId = null;
+      saveBtn.textContent = "حفظ المشاركة";
+      updateGradeOptions();
+      updateClassOptions();
+      renderPastList();
+      renderPdfPreview([]);
+    }
+
+    function showToast(message = "تم التسليم بنجاح") {
+      toastMessage.textContent = message;
+      toast.classList.remove("hidden");
+      let timer = setTimeout(() => {
+        toast.classList.add("hidden");
+      }, 3000);
+      const close = () => {
+        toast.classList.add("hidden");
+        clearTimeout(timer);
+      };
+      toastDismiss.onclick = close;
+    }
+
+    function showMainView() {
+      mainView.classList.remove("hidden");
+      detailPage.classList.add("hidden");
+    }
+
+    function startEdit(rec) {
+      editingId = rec.id;
+      nameInput.value = rec.name || "";
+      schoolSelect.value = rec.school || "";
+      levelSelect.value = rec.level || "";
+      updateGradeOptions();
+      updateClassOptions();
+      gradeYearSelect.value = rec.gradeYear || "";
+      gradeClassSelect.value = rec.gradeClass || "";
+      interestsInput.value = rec.interests || "";
+      bioInput.value = rec.bio || "";
+      currentInput.value = rec.current || "";
+      pastEntries = Array.isArray(rec.previous) ? [...rec.previous] : [];
+      existingPdfs = rec.pdfs ? rec.pdfs.map(p => (typeof p === "string" ? { url: p, name: p.split("/").pop() } : p)) : [];
+      selectedFiles = [];
+      renderPdfPreview(buildPdfPreviewList());
+      renderPastList();
+      saveBtn.textContent = "تحديث المشاركة";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    async function deleteRecord(id, ownerId) {
+      if (ownerId && ownerId !== OWNER_ID) {
+        alert("لا يمكنك حذف سجل ليس لك.");
+        return;
+      }
+      const sure = confirm("حذف هذا السجل؟");
+      if (!sure) return;
+      if (isSupabaseReady()) {
+        const ok = await deleteRemoteRecord(id);
+        if (!ok) return;
+      }
+      records = records.filter(r => r.id !== id);
+      saveLocalRecords();
+      renderEntries(searchInput.value.trim());
+      if (window.location.hash === `#student-${id}`) {
+        location.hash = "";
+        showMainView();
+      }
+    }
+
+    function fillDetail(rec) {
+      const previousList = Array.isArray(rec.previous) ? rec.previous : [];
+      detailName.textContent = rec.name || "طالب بدون اسم";
+      detailCreated.textContent = `أضيفت بتاريخ ${formatDate(rec.createdAt)}`;
+      detailSchool.textContent = rec.school || "غير محدد";
+      detailGrade.textContent = formatGrade(rec.gradeYear, rec.gradeClass);
+      detailInterests.textContent = rec.interests?.trim() || "غير محدد";
+      setMultiline(detailBio, rec.bio, "لا توجد معلومات");
+      setMultiline(detailCurrent, rec.current, "لا توجد مشاركات لهذا العام");
+      detailPast.innerHTML = "";
+      if (previousList.length) {
+        previousList.forEach(item => {
+          const pill = document.createElement("div");
+          pill.className = "pill";
+          pill.style.border = "1px solid #d9f99d";
+          pill.style.background = "#f7fee7";
+          pill.innerHTML = `<strong>${item.year}</strong> — ${escapeHtml(item.text)}`;
+          detailPast.appendChild(pill);
+        });
+      } else {
+        const span = document.createElement("div");
+        span.className = "help";
+        span.textContent = "لا توجد مشاركات سابقة.";
+        detailPast.appendChild(span);
+      }
+      detailPdfs.innerHTML = "";
+      if (rec.pdfs && rec.pdfs.length) {
+        rec.pdfs.forEach((item, idx) => {
+          const info = pdfDisplay(item, idx);
+          if (!info) return;
+          const link = document.createElement("a");
+          link.className = "pdf-link";
+          link.href = info.url;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.textContent = info.name || `ملف ${idx + 1}`;
+          detailPdfs.appendChild(link);
+        });
+      } else {
+        const span = document.createElement("div");
+        span.className = "help";
+        span.textContent = "لا توجد ملفات مرفقة.";
+        detailPdfs.appendChild(span);
+      }
+    }
+
+    function handleHashChange() {
+      const match = window.location.hash.match(/^#?student-(\d+)/);
+      if (!match) {
+        showMainView();
+        return;
+      }
+      const id = Number(match[1]);
+      const rec = records.find(r => r.id === id);
+      if (!rec) {
+        showMainView();
+        return;
+      }
+      fillDetail(rec);
+      mainView.classList.add("hidden");
+      detailPage.classList.remove("hidden");
+      detailPage.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    async function initRecords() {
+      setupSupabase();
+      let loaded = null;
+      if (isSupabaseReady()) {
+        loaded = await fetchRemoteRecords();
+      }
+      if (!loaded) {
+        loaded = loadLocalRecords();
+      }
+      records = loaded || [];
+      saveLocalRecords();
+      renderEntries(searchInput.value.trim());
+      handleHashChange();
+    }
+
+    document.getElementById("addPast").addEventListener("click", () => {
+      const year = pastYearInput.value.trim();
+      const text = pastDescInput.value.trim();
+      if (!year || !text) return;
+      pastEntries.push({ year, text });
+      pastYearInput.value = "";
+      pastDescInput.value = "";
+      renderPastList();
+    });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (!form.reportValidity()) return;
+      // If the user filled past fields but forgot to press "إضافة للسابق" add them now.
+      const pendingYear = pastYearInput.value.trim();
+      const pendingText = pastDescInput.value.trim();
+      if (pendingYear && pendingText) {
+        pastEntries.push({ year: pendingYear, text: pendingText });
+      }
+
+      let pdfList = [...existingPdfs];
+      if (selectedFiles.length) {
+        if (!isSupabaseReady()) {
+          alert("رفع الملفات يتطلب تفعيل Supabase Storage. سيتم تجاهل الملفات.");
+        } else {
+          const uploaded = await uploadPdfs(selectedFiles.slice(0, 10));
+          pdfList = [...existingPdfs, ...uploaded];
+        }
+      }
+      renderPdfPreview(buildPdfPreviewList());
+
+      const baseRecord = {
+        id: editingId || Date.now(),
+        name: nameInput.value.trim(),
+        current: currentInput.value.trim(),
+        interests: interestsInput.value.trim(),
+        bio: bioInput.value.trim(),
+        school: schoolSelect.value,
+        level: levelSelect.value,
+        gradeYear: gradeYearSelect.value,
+        gradeClass: gradeClassSelect.value,
+        pdfs: pdfList,
+        previous: [...pastEntries],
+        createdAt: editingId ? (records.find(r => r.id === editingId)?.createdAt || new Date().toISOString()) : new Date().toISOString(),
+        ownerId: OWNER_ID
+      };
+
+      if (editingId) {
+        // Update existing
+        if (isSupabaseReady()) {
+          const updated = await updateRemoteRecord(baseRecord);
+          if (updated) {
+            records = records.map(r => r.id === editingId ? updated : r);
+          } else {
+            records = records.map(r => r.id === editingId ? baseRecord : r);
+          }
+        } else {
+          records = records.map(r => r.id === editingId ? baseRecord : r);
+        }
+      } else {
+        // New insert
+        if (isSupabaseReady()) {
+          const saved = await insertRemoteRecord(baseRecord);
+          if (saved) {
+            records = [saved, ...records];
+          } else {
+            records = [baseRecord, ...records];
+          }
+        } else {
+          records = [baseRecord, ...records];
+        }
+      }
+
+      saveLocalRecords();
+      renderEntries(searchInput.value.trim());
+      resetFormFields();
+      nameInput.focus();
+      showToast("تم التسليم بنجاح");
+    });
+
+    resetFormButton.addEventListener("click", () => resetFormFields());
+
+    searchInput.addEventListener("input", (e) => {
+      renderEntries(e.target.value.trim());
+    });
+    sortSelect.addEventListener("change", () => {
+      renderEntries(searchInput.value.trim());
+    });
+    pdfInput.addEventListener("change", () => {
+      const files = Array.from(pdfInput.files || []).slice(0, 10);
+      selectedFiles = files;
+      pdfInput.value = "";
+      renderPdfPreview(buildPdfPreviewList());
+    });
+    levelSelect.addEventListener("change", () => {
+      updateGradeOptions();
+      renderEntries(searchInput.value.trim());
+    });
+
+    document.getElementById("viewAccordion").addEventListener("click", () => {
+      viewMode = "accordion";
+      viewState = { stage: "levels", levelName: null, school: null, year: null, classLabel: null };
+      renderEntries(searchInput.value.trim());
+    });
+    document.getElementById("viewAll").addEventListener("click", () => {
+      viewMode = "all";
+      renderEntries(searchInput.value.trim());
+    });
+
+    backToListBtn.addEventListener("click", () => {
+      location.hash = "";
+      showMainView();
+    });
+    window.addEventListener("hashchange", handleHashChange);
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        location.hash = "";
+        showMainView();
+      }
+    });
+
+    // Initialize
+    renderPastList();
+    updateClassOptions();
+    updateGradeOptions();
+    renderPdfPreview([]);
+    initRecords();
+  </script>
+</body>
+</html>

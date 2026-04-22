@@ -20,6 +20,13 @@ begin
   ) then
     alter table public.teacher_assignments
       add constraint teacher_assignments_subject_check
-      check (subject in ('art', 'chinese'));
+      check (subject in ('art', 'chinese', 'math'));
   end if;
 end $$;
+
+alter table public.teacher_assignments
+  drop constraint if exists teacher_assignments_subject_check;
+
+alter table public.teacher_assignments
+  add constraint teacher_assignments_subject_check
+  check (subject in ('art', 'chinese', 'math'));

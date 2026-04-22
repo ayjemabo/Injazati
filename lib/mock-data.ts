@@ -70,7 +70,8 @@ export const submissionRounds: SubmissionRound[] = [
   { id: "round-2", title: "المعرض الثاني", subject: "art", dueDate: "2026-06-01", isOpen: true },
   { id: "round-3", title: "المعرض الختامي", subject: "art", dueDate: "2026-06-20", isOpen: false },
   { id: "round-4", title: "المشروع الأول", subject: "chinese", dueDate: "2026-05-12", isOpen: true },
-  { id: "round-5", title: "المشروع الختامي", subject: "chinese", dueDate: "2026-06-18", isOpen: true }
+  { id: "round-5", title: "المشروع الختامي", subject: "chinese", dueDate: "2026-06-18", isOpen: true },
+  { id: "round-6", title: "مشروع الرياضيات", subject: "math", dueDate: "2026-06-10", isOpen: true }
 ];
 
 export const submissions: Submission[] = [

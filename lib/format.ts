@@ -6,6 +6,13 @@ export function formatDate(date: string) {
   }).format(new Date(date));
 }
 
-export function getSubjectLabel(subject: "art" | "chinese") {
-  return subject === "chinese" ? "الصيني" : "الفنية";
+export function getSubjectLabel(subject: "art" | "chinese" | "math") {
+  switch (subject) {
+    case "chinese":
+      return "الصيني";
+    case "math":
+      return "الرياضيات";
+    default:
+      return "الفنية";
+  }
 }

@@ -4,7 +4,7 @@ import { getAppSession } from "@/lib/auth";
 import { createServerSupabaseClient } from "@/lib/supabase";
 import type { SubmissionSubject } from "@/lib/types";
 
-const allowedSubjects: SubmissionSubject[] = ["art", "chinese"];
+const allowedSubjects: SubmissionSubject[] = ["art", "chinese", "math"];
 type TeacherAssignmentInput = {
   classSectionId: string;
   subject: SubmissionSubject;

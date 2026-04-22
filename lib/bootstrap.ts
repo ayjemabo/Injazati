@@ -33,6 +33,12 @@ const defaultRounds: Array<{
     subject: "chinese",
     dueDate: getOffsetDueDate(10),
     isOpen: true
+  },
+  {
+    title: "مشروع الرياضيات الحالي",
+    subject: "math",
+    dueDate: getOffsetDueDate(12),
+    isOpen: true
   }
 ];
 
@@ -100,9 +106,17 @@ export async function ensureMinimumLiveData() {
   const hasSubjectColumn = rounds.some((round) => Object.prototype.hasOwnProperty.call(round, "subject"));
 
   if (hasSubjectColumn) {
-    const existingSubjects = new Set(
-      rounds.map((round) => (round.subject === "chinese" ? "chinese" : "art"))
-    );
+    const existingSubjects = new Set(rounds.map((round) => {
+      if (round.subject === "chinese") {
+        return "chinese";
+      }
+
+      if (round.subject === "math") {
+        return "math";
+      }
+
+      return "art";
+    }));
 
     for (const round of defaultRounds) {
       if (!existingSubjects.has(round.subject)) {

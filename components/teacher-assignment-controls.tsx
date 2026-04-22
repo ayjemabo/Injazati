@@ -9,7 +9,7 @@ interface TeacherAssignmentControlsProps {
   initialAssignments: TeacherAssignment[];
 }
 
-const subjects: SubmissionSubject[] = ["art", "chinese"];
+const subjects: SubmissionSubject[] = ["art", "chinese", "math"];
 
 function getKey(subject: SubmissionSubject, classSectionId: string) {
   return `${subject}:${classSectionId}`;

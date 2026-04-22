@@ -20,9 +20,16 @@ begin
   ) then
     alter table public.submission_rounds
       add constraint submission_rounds_subject_check
-      check (subject in ('art', 'chinese'));
+      check (subject in ('art', 'chinese', 'math'));
   end if;
 end $$;
+
+alter table public.submission_rounds
+  drop constraint if exists submission_rounds_subject_check;
+
+alter table public.submission_rounds
+  add constraint submission_rounds_subject_check
+  check (subject in ('art', 'chinese', 'math'));
 
 insert into public.submission_rounds (title, subject, due_date, is_open)
 select 'مشروع الصيني الحالي', 'chinese', current_date + interval '10 day', true
@@ -30,4 +37,12 @@ where not exists (
   select 1
   from public.submission_rounds
   where subject = 'chinese'
+);
+
+insert into public.submission_rounds (title, subject, due_date, is_open)
+select 'مشروع الرياضيات الحالي', 'math', current_date + interval '12 day', true
+where not exists (
+  select 1
+  from public.submission_rounds
+  where subject = 'math'
 );

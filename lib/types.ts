@@ -8,7 +8,7 @@ export type SubmissionStatus =
   | "approved";
 
 export type FileKind = "zip" | "pdf" | "image" | "document";
-export type SubmissionSubject = "art" | "chinese";
+export type SubmissionSubject = "art" | "chinese" | "math";
 
 export interface User {
   id: string;

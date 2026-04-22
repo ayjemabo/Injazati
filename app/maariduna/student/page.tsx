@@ -79,7 +79,7 @@ export default async function StudentPage({
     >
       <section className="grid-3">
         <SummaryCard label="الطالب" value={student.displayName || student.username || "طالب"} hint="حسابك جاهز للرفع" icon="🧑‍🎓" />
-        <SummaryCard label="المواد المفتوحة" value={Object.keys(subjectGroups).length || 0} hint={Object.keys(subjectGroups).map((subject) => getSubjectLabel(subject as "art" | "chinese")).join("، ") || "لا توجد مواد"} icon="⏳" />
+        <SummaryCard label="المواد المفتوحة" value={Object.keys(subjectGroups).length || 0} hint={Object.keys(subjectGroups).map((subject) => getSubjectLabel(subject as "art" | "chinese" | "math")).join("، ") || "لا توجد مواد"} icon="⏳" />
         <SummaryCard
           label="آخر حالة"
           value={latestEntry ? getStatusLabel(latestEntry.submission.status) : "لا يوجد رفع بعد"}
@@ -119,7 +119,7 @@ export default async function StudentPage({
               <summary style={{ cursor: "pointer", listStyle: "none" }}>
                 <div className="section-head">
                   <div>
-                    <h2>{`مادة ${getSubjectLabel(subject as "art" | "chinese")}`}</h2>
+                    <h2>{`مادة ${getSubjectLabel(subject as "art" | "chinese" | "math")}`}</h2>
                     <p>لكل مادة جولات مستقلة. افتح المادة ثم ارفع الملفات داخل الجولة المناسبة فقط.</p>
                   </div>
                   <span className="pill">{`${subjectRounds.length} جولة`}</span>

@@ -30,13 +30,13 @@ create table public.teacher_assignments (
   id uuid primary key default gen_random_uuid(),
   teacher_id uuid not null references public.profiles(id) on delete cascade,
   class_section_id uuid not null references public.class_sections(id) on delete cascade,
-  subject text not null default 'art' check (subject in ('art', 'chinese'))
+  subject text not null default 'art' check (subject in ('art', 'chinese', 'math'))
 );
 
 create table public.submission_rounds (
   id uuid primary key default gen_random_uuid(),
   title text not null,
-  subject text not null default 'art' check (subject in ('art', 'chinese')),
+  subject text not null default 'art' check (subject in ('art', 'chinese', 'math')),
   due_date date not null,
   is_open boolean not null default true,
   created_at timestamptz not null default now()

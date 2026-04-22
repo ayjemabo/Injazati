@@ -135,7 +135,15 @@ function mapTeacherAssignment(row: TeacherAssignmentRow): TeacherAssignment {
 }
 
 function normalizeSubject(subject?: string | null): SubmissionSubject {
-  return subject === "chinese" ? "chinese" : "art";
+  if (subject === "chinese") {
+    return "chinese";
+  }
+
+  if (subject === "math") {
+    return "math";
+  }
+
+  return "art";
 }
 
 function mapSubmissionRound(row: SubmissionRoundRow): SubmissionRound {

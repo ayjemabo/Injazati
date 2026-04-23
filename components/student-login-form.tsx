@@ -104,6 +104,11 @@ export function StudentLoginForm({ showDemoHelp, demoCredentials = [] }: Student
           <span className="helper-copy">اسم المستخدم</span>
           <input className="text-input" dir="ltr" value={username} onChange={(event) => setUsername(event.target.value)} />
         </label>
+        {mode === "signup" ? (
+          <p className="helper-copy" style={{ margin: "-4px 0 0" }}>
+            استخدم اسمك الحقيقي حتى يعرفك المعلمون.
+          </p>
+        ) : null}
         <label>
           <span className="helper-copy">كلمة المرور</span>
           <input

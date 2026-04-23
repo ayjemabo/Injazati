@@ -45,7 +45,7 @@ export default async function SubmissionDetailsPage({
           <div className="section-head">
             <div>
               <h2>غير مصرح بالوصول</h2>
-              <p>هذه الصفحة متاحة للطالبة نفسها أو للمعلم أو للمشرف.</p>
+              <p>هذه الصفحة متاحة للطالب نفسه أو للمعلم أو للمشرف.</p>
             </div>
           </div>
           <div className="inline-actions">
@@ -66,7 +66,7 @@ export default async function SubmissionDetailsPage({
       <section className="grid-3">
         <article className="summary-card">
           <div>
-            <p className="summary-label">الطالبة</p>
+            <p className="summary-label">الطالب</p>
             <strong className="summary-value">{data.student.displayName}</strong>
             <p className="summary-hint">{data.student.email}</p>
           </div>

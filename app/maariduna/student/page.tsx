@@ -78,7 +78,7 @@ export default async function StudentPage({
       subtitle="هنا يرفع الطالب ملفات كل مادة في جولتها الخاصة. اختر الجولة المناسبة ثم ارفع الملفات."
     >
       <section className="grid-3">
-        <SummaryCard label="الطالب" value={student.displayName || student.username || "طالب"} hint="حسابك جاهز للرفع" icon="🧑‍🎓" />
+        <SummaryCard label="الطالب" value={student.displayName || student.username || "طالب"} hint="حسابك جاهز للرفع" icon="👨‍🎓" />
         <SummaryCard label="المواد المفتوحة" value={Object.keys(subjectGroups).length || 0} hint={Object.keys(subjectGroups).map((subject) => getSubjectLabel(subject as "art" | "chinese" | "math")).join("، ") || "لا توجد مواد"} icon="⏳" />
         <SummaryCard
           label="آخر حالة"

@@ -155,7 +155,7 @@ export default async function TeacherPage({
                   className="secondary-button"
                   defaultValue={nameQuery}
                   name="name"
-                  placeholder="ابحث عن الطالبة"
+                  placeholder="ابحث عن الطالب"
                 />
               </label>
               <div className="inline-actions" style={{ alignItems: "end" }}>
@@ -179,7 +179,7 @@ export default async function TeacherPage({
             <table className="table">
               <thead>
                 <tr>
-                  <th>الطالبة</th>
+                  <th>الطالب</th>
                   <th>فصل</th>
                   <th>المادة</th>
                   <th>الجولة</th>

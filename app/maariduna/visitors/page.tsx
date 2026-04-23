@@ -73,7 +73,7 @@ export default async function VisitorPage() {
         <table className="table">
           <thead>
             <tr>
-              <th>الطالبة</th>
+              <th>الطالب</th>
               <th>المادة</th>
               <th>الجولة</th>
               <th>الحالة</th>

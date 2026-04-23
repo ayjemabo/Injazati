@@ -22,7 +22,7 @@ export default async function HomePage() {
       subtitle="مكان بسيط وواضح لرفع ملفات المعرض ومراجعتها داخل مدرسة البلد الأمين، مع جولات مستقلة لكل مادة."
     >
       <section className="grid-3">
-        <SummaryCard label="عدد الطلاب" value={dataset.users.filter((user) => user.role === "student").length} hint="طلاب مفعلون في النظام" icon="👩‍🎨" />
+        <SummaryCard label="عدد الطلاب" value={dataset.users.filter((user) => user.role === "student").length} hint="طلاب مفعلون في النظام" icon="👨‍🎨" />
         <SummaryCard label="المواد" value={subjects.length} hint={subjects.map((subject) => getSubjectLabel(subject)).join("، ")} icon="📚" />
         <SummaryCard label="الجولات" value={dataset.submissionRounds.length} hint="جولات مستقلة لكل مادة" icon="🗂️" />
         <SummaryCard label="المعلمون" value={dataset.users.filter((user) => user.role === "teacher").length} hint="معلم واحد يكفي للمتابعة الآن" icon="🧑‍🏫" />

@@ -85,7 +85,7 @@ export function StudentSubmissionActions({
       <div className="section-head">
         <div>
           <h2>إدارة التسليم</h2>
-          <p>هذه الخيارات متاحة للطالبة صاحبة التسليم فقط.</p>
+          <p>هذه الخيارات متاحة للطالب صاحب التسليم فقط.</p>
         </div>
       </div>
 

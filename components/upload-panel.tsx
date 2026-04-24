@@ -13,6 +13,15 @@ type DirectoryInput = HTMLInputElement & {
   webkitdirectory?: boolean;
 };
 
+type PreparedUpload = {
+  provider?: string;
+  storagePath?: string;
+  token?: string;
+  uploadHeaders?: Record<string, string>;
+  uploadToken?: string;
+  uploadUrl?: string;
+};
+
 function getDisplayName(file: File) {
   return file.webkitRelativePath || file.name;
 }
@@ -72,15 +81,19 @@ export function UploadPanel({ submissionId, roundId }: UploadPanelProps) {
 
     const preparedUploads = Array.isArray(preparePayload.uploads) ? preparePayload.uploads : [];
     const confirmedSubmissionId = String(preparePayload.submissionId ?? submissionId ?? "");
-    const uploadedStoragePaths: string[] = [];
+    const uploadedFiles: Array<{
+      sizeBytes: number;
+      storagePath: string;
+      uploadToken: string;
+    }> = [];
     let supabaseClient = null as ReturnType<typeof createBrowserSupabaseClient>;
 
     try {
       for (let index = 0; index < files.length; index += 1) {
         const file = files[index];
-        const upload = preparedUploads[index];
+        const upload = preparedUploads[index] as PreparedUpload | undefined;
 
-        if (!upload?.storagePath || !upload?.provider) {
+        if (!upload?.storagePath || !upload?.provider || !upload.uploadToken) {
           throw new Error("بيانات الرفع غير مكتملة.");
         }
 
@@ -101,6 +114,10 @@ export function UploadPanel({ submissionId, roundId }: UploadPanelProps) {
             throw new Error(`فشل رفع الملف ${getDisplayName(file)}.`);
           }
         } else {
+          if (!upload.token) {
+            throw new Error("رمز رفع Supabase غير مكتمل.");
+          }
+
           if (!hasPublicSupabaseEnv) {
             throw new Error("الرفع عبر Supabase يحتاج مفاتيح عامة مكتملة أو تفعيل R2.");
           }
@@ -121,7 +138,11 @@ export function UploadPanel({ submissionId, roundId }: UploadPanelProps) {
           }
         }
 
-        uploadedStoragePaths.push(upload.storagePath);
+        uploadedFiles.push({
+          sizeBytes: file.size,
+          storagePath: upload.storagePath,
+          uploadToken: upload.uploadToken
+        });
       }
 
       const finalizeResponse = await fetch("/api/submissions", {
@@ -136,7 +157,8 @@ export function UploadPanel({ submissionId, roundId }: UploadPanelProps) {
           files: files.map((file, index) => ({
             originalName: getDisplayName(file),
             sizeBytes: file.size,
-            storagePath: uploadedStoragePaths[index]
+            storagePath: uploadedFiles[index]?.storagePath,
+            uploadToken: uploadedFiles[index]?.uploadToken
           }))
         })
       });
@@ -146,7 +168,7 @@ export function UploadPanel({ submissionId, roundId }: UploadPanelProps) {
         throw new Error(finalizePayload.error ?? "فشل اعتماد الملفات بعد الرفع.");
       }
     } catch (error) {
-      if (confirmedSubmissionId && uploadedStoragePaths.length > 0) {
+      if (confirmedSubmissionId && uploadedFiles.length > 0) {
         await fetch("/api/submissions", {
           method: "POST",
           headers: {
@@ -155,7 +177,7 @@ export function UploadPanel({ submissionId, roundId }: UploadPanelProps) {
           body: JSON.stringify({
             action: "cleanup",
             submissionId: confirmedSubmissionId,
-            storagePaths: uploadedStoragePaths
+            files: uploadedFiles
           })
         });
       }

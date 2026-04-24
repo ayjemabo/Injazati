@@ -200,6 +200,10 @@ export async function createManagedPreviewUrl(storagePath: string, expiresIn = 6
   const parsed = parseStoragePath(storagePath);
 
   if (parsed.provider === "r2") {
+    if (!hasR2StorageEnv) {
+      return null;
+    }
+
     const client = getR2Client();
     return getSignedUrl(
       client,

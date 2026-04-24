@@ -2,7 +2,21 @@ import { createHmac, randomBytes, scryptSync, timingSafeEqual } from "crypto";
 import { cookies } from "next/headers";
 
 const sessionCookieName = "maariduna_student_session";
-const sessionSecret = process.env.SESSION_SECRET || "maariduna-dev-session-secret";
+const devSessionSecret = "maariduna-dev-session-secret";
+
+export function getSessionSecret() {
+  if (process.env.SESSION_SECRET) {
+    return process.env.SESSION_SECRET;
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("SESSION_SECRET must be set in production.");
+  }
+
+  return devSessionSecret;
+}
+
+const sessionSecret = getSessionSecret();
 
 export type AppSession = {
   userId: string;

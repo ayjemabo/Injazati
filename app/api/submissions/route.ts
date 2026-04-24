@@ -7,6 +7,21 @@ import {
   finalizeSubmissionUploads,
   prepareSubmissionUploads
 } from "@/lib/live-actions";
+import { createUploadToken, verifyUploadToken } from "@/lib/upload-tokens";
+
+type FinalizedUploadInput = {
+  kind?: "zip" | "pdf" | "image" | "document";
+  originalName: string;
+  sizeBytes: number;
+  storagePath: string;
+  uploadToken: string;
+};
+
+type CleanupUploadInput = {
+  sizeBytes: number;
+  storagePath: string;
+  uploadToken: string;
+};
 
 async function resolveStudentContext(sessionUserId: string) {
   const supabase = createServerSupabaseClient();
@@ -36,6 +51,53 @@ async function resolveStudentContext(sessionUserId: string) {
   }
 
   return { supabase, ownProfile };
+}
+
+function toFiniteSize(value: unknown) {
+  const sizeBytes = Number(value ?? 0);
+  return Number.isFinite(sizeBytes) && sizeBytes >= 0 ? sizeBytes : 0;
+}
+
+function parseFinalizeFiles(files: unknown[]): FinalizedUploadInput[] {
+  return files.map((item: unknown) => {
+    const record = item as Record<string, unknown>;
+    const kind = String(record.kind ?? "");
+
+    return {
+      originalName: String(record.originalName ?? ""),
+      sizeBytes: toFiniteSize(record.sizeBytes),
+      storagePath: String(record.storagePath ?? ""),
+      uploadToken: String(record.uploadToken ?? ""),
+      kind: kind === "zip" || kind === "pdf" || kind === "image" || kind === "document" ? kind : undefined
+    };
+  });
+}
+
+function parseCleanupFiles(files: unknown[]): CleanupUploadInput[] {
+  return files.map((item: unknown) => {
+    const record = item as Record<string, unknown>;
+
+    return {
+      sizeBytes: toFiniteSize(record.sizeBytes),
+      storagePath: String(record.storagePath ?? ""),
+      uploadToken: String(record.uploadToken ?? "")
+    };
+  });
+}
+
+function verifyPreparedUploads(input: {
+  files: CleanupUploadInput[];
+  studentProfileId: string;
+  submissionId: string;
+}) {
+  return input.files.every((file) =>
+    verifyUploadToken(file.uploadToken, {
+      submissionId: input.submissionId,
+      studentProfileId: input.studentProfileId,
+      storagePath: file.storagePath,
+      sizeBytes: file.sizeBytes
+    })
+  );
 }
 
 export async function POST(request: NextRequest) {
@@ -95,12 +157,24 @@ export async function POST(request: NextRequest) {
             clientName: String(record.clientName ?? ""),
             originalName: String(record.originalName ?? ""),
             contentType: String(record.contentType ?? "application/octet-stream"),
-            sizeBytes: Number(record.sizeBytes ?? 0)
+            sizeBytes: toFiniteSize(record.sizeBytes)
           };
         })
       });
 
-      return NextResponse.json({ ok: true, submissionId, uploads });
+      return NextResponse.json({
+        ok: true,
+        submissionId,
+        uploads: uploads.map((upload) => ({
+          ...upload,
+          uploadToken: createUploadToken({
+            submissionId,
+            studentProfileId: ownProfile.id,
+            storagePath: upload.storagePath,
+            sizeBytes: upload.sizeBytes
+          })
+        }))
+      });
     }
 
     if (body.action === "finalize") {
@@ -109,24 +183,36 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ ok: false, error: "لم يتم إرسال بيانات الملفات النهائية." }, { status: 400 });
       }
 
+      const finalizedFiles = parseFinalizeFiles(files);
+      if (!verifyPreparedUploads({ files: finalizedFiles, studentProfileId: ownProfile.id, submissionId })) {
+        return NextResponse.json({ ok: false, error: "بيانات الرفع غير صالحة أو منتهية." }, { status: 403 });
+      }
+
       const storagePaths = await finalizeSubmissionUploads({
         submissionId,
-        files: files.map((item: unknown) => {
-          const record = item as Record<string, unknown>;
-          return {
-            originalName: String(record.originalName ?? ""),
-            sizeBytes: Number(record.sizeBytes ?? 0),
-            storagePath: String(record.storagePath ?? ""),
-            kind: record.kind ? String(record.kind) as "zip" | "pdf" | "image" | "document" : undefined
-          };
-        })
+        files: finalizedFiles.map(({ originalName, sizeBytes, storagePath, kind }) => ({
+          originalName,
+          sizeBytes,
+          storagePath,
+          kind
+        }))
       });
 
       return NextResponse.json({ ok: true, submissionId, storagePaths });
     }
 
     if (body.action === "cleanup") {
-      const storagePaths = Array.isArray(body.storagePaths) ? body.storagePaths.map((item: unknown) => String(item)) : [];
+      const cleanupFiles = Array.isArray(body.files) ? parseCleanupFiles(body.files) : [];
+      const legacyStoragePaths = Array.isArray(body.storagePaths) ? body.storagePaths : [];
+      if (legacyStoragePaths.length > 0 && cleanupFiles.length === 0) {
+        return NextResponse.json({ ok: false, error: "بيانات تنظيف الرفع غير صالحة." }, { status: 403 });
+      }
+
+      if (!verifyPreparedUploads({ files: cleanupFiles, studentProfileId: ownProfile.id, submissionId })) {
+        return NextResponse.json({ ok: false, error: "بيانات تنظيف الرفع غير صالحة أو منتهية." }, { status: 403 });
+      }
+
+      const storagePaths = cleanupFiles.map((file) => file.storagePath);
       if (storagePaths.length > 0) {
         await cleanupPreparedSubmissionUploads({
           submissionId,

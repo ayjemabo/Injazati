@@ -55,6 +55,12 @@ export function StudentLoginForm({ showDemoHelp, demoCredentials = [] }: Student
     event.preventDefault();
     setLoading(true);
 
+    if (mode === "signup" && username.includes("@")) {
+      setLoading(false);
+      setMessage("أدخل اسمك الثلاثي الحقيقي باللغة العربية.");
+      return;
+    }
+
     if (mode === "signup" && (!level || !gradeYear || !gradeClass)) {
       setLoading(false);
       setMessage("أدخل المرحلة والسنة والفصل قبل إنشاء الحساب.");

@@ -172,6 +172,10 @@ export async function registerStudent(username: string, password: string, placem
     throw new Error("التسجيل الذاتي يحتاج اتصال Supabase فعلي.");
   }
 
+  if (normalized.includes("@")) {
+    throw new Error("أدخل اسمك الثلاثي الحقيقي باللغة العربية.");
+  }
+
   if (!normalized || password.length < 6) {
     throw new Error("أدخل اسم مستخدم صالحاً وكلمة مرور من 6 أحرف على الأقل.");
   }

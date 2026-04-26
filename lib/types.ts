@@ -50,6 +50,7 @@ export interface SubmissionRound {
 export interface SubmissionFile {
   id: string;
   submissionId: string;
+  chineseFileType?: ChineseFileType | null;
   name: string;
   kind: FileKind;
   sizeLabel: string;

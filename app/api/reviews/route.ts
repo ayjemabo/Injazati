@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAppSession } from "@/lib/auth";
-import { normalizeChineseFileType } from "@/lib/chinese-file-type";
 import { canTeacherAccessSubmission } from "@/lib/dashboard";
 import { applyReviewUpdate } from "@/lib/live-actions";
 
@@ -12,11 +11,6 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const hasChineseFileType = Object.prototype.hasOwnProperty.call(body, "chineseFileType");
-    const chineseFileType = hasChineseFileType ? normalizeChineseFileType(body.chineseFileType) : undefined;
-    if (hasChineseFileType && chineseFileType === undefined) {
-      return NextResponse.json({ ok: false, error: "نوع ملف الصيني غير صالح." }, { status: 400 });
-    }
 
     if (session.role === "teacher") {
       const canReview = await canTeacherAccessSubmission(session.userId, String(body.submissionId ?? ""));
@@ -30,8 +24,7 @@ export async function POST(request: NextRequest) {
       teacherId: session.userId,
       status: body.status,
       grade: body.grade === "" || body.grade === null ? null : Number(body.grade),
-      comment: body.comment,
-      chineseFileType
+      comment: body.comment
     });
 
     return NextResponse.json({ ok: true });

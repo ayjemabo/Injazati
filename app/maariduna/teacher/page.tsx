@@ -58,7 +58,7 @@ export default async function TeacherPage({
   const chineseFilteredCards = selectedChineseType === "all"
     ? filteredCards
     : filteredCards.filter(
-        (card) => card.round.subject === "chinese" && card.chineseFileType === selectedChineseType
+        (card) => card.round.subject === "chinese" && card.chineseFileTypes.includes(selectedChineseType)
       );
   const teacherAssignments = dataset.teacherAssignments.filter((assignment) => assignment.teacherId === session.userId);
   const teacherClassSections = dataset.classSections.filter((classSection) =>
@@ -220,8 +220,8 @@ export default async function TeacherPage({
                     </td>
                     <td>{getSubjectLabel(card.round.subject)}</td>
                     <td>
-                      {card.round.subject === "chinese" && card.chineseFileType
-                        ? getChineseFileTypeLabel(card.chineseFileType)
+                      {card.round.subject === "chinese" && card.chineseFileTypes.length > 0
+                        ? card.chineseFileTypes.map((type) => getChineseFileTypeLabel(type)).join("، ")
                         : "-"}
                     </td>
                     <td>{card.round.title}</td>

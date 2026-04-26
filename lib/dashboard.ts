@@ -1,4 +1,8 @@
-import { isChineseFileTypeMarker, parseChineseFileTypeMarker } from "@/lib/chinese-file-type";
+import {
+  isChineseFileTypeMarker,
+  parseChineseFileTypeFileMarker,
+  parseChineseFileTypeMarker
+} from "@/lib/chinese-file-type";
 import { getDataset } from "@/lib/data";
 import { createManagedPreviewUrl } from "@/lib/storage";
 import type { SubmissionStatus, SubmissionSubject, TeacherAssignment } from "@/lib/types";
@@ -108,12 +112,26 @@ export async function getSubmissionView(submissionId: string) {
     round.subject === "chinese"
       ? comments.map((comment) => parseChineseFileTypeMarker(comment.content)).find((value) => value !== undefined) ?? null
       : null;
+  const chineseFileTypesByFile = new Map<string, ReturnType<typeof parseChineseFileTypeMarker>>();
+  if (round.subject === "chinese") {
+    for (const comment of comments) {
+      const marker = parseChineseFileTypeFileMarker(comment.content);
+      if (marker && !chineseFileTypesByFile.has(marker.fileId)) {
+        chineseFileTypesByFile.set(marker.fileId, marker.value);
+      }
+    }
+  }
   const visibleComments = comments.filter((comment) => !isChineseFileTypeMarker(comment.content));
   const filesWithUrls = await Promise.all(
     files.map(async (file) => {
+      const fileChineseType = chineseFileTypesByFile.has(file.id)
+        ? chineseFileTypesByFile.get(file.id) ?? null
+        : chineseFileType;
+
       if (source !== "supabase") {
         return {
           ...file,
+          chineseFileType: fileChineseType,
           previewUrl: null,
           downloadUrl: null
         };
@@ -121,6 +139,7 @@ export async function getSubmissionView(submissionId: string) {
 
       return {
         ...file,
+        chineseFileType: fileChineseType,
         previewUrl: await createManagedPreviewUrl(file.storagePath),
         downloadUrl: `/api/submissions/${submissionId}/files/${file.id}/download`
       };
@@ -243,7 +262,7 @@ export async function getTeacherDashboard(teacherUserId = "teacher-1") {
   }
 
   type TeacherCard = {
-    chineseFileType: ReturnType<typeof parseChineseFileTypeMarker> | null;
+    chineseFileTypes: NonNullable<ReturnType<typeof parseChineseFileTypeMarker>>[];
     submission: (typeof submissions)[number];
     student: (typeof users)[number];
     profile: (typeof studentProfiles)[number];
@@ -285,11 +304,31 @@ export async function getTeacherDashboard(teacherUserId = "teacher-1") {
               .map((comment) => parseChineseFileTypeMarker(comment.content))
               .find((value) => value !== undefined) ?? null
           : null;
+      const chineseFileTypesByFile = new Map<string, ReturnType<typeof parseChineseFileTypeMarker>>();
+      if (round.subject === "chinese") {
+        for (const comment of reviewComments.filter((item) => item.submissionId === submission.id)) {
+          const marker = parseChineseFileTypeFileMarker(comment.content);
+          if (marker && !chineseFileTypesByFile.has(marker.fileId)) {
+            chineseFileTypesByFile.set(marker.fileId, marker.value);
+          }
+        }
+      }
+      const chineseFileTypes = Array.from(
+        new Set(
+          files
+            .map((file) =>
+              chineseFileTypesByFile.has(file.id)
+                ? chineseFileTypesByFile.get(file.id) ?? null
+                : chineseFileType
+            )
+            .filter((value): value is NonNullable<typeof value> => value !== null)
+        )
+      );
       const comments = reviewComments.filter(
         (item) => item.submissionId === submission.id && !isChineseFileTypeMarker(item.content)
       );
 
-      return { submission, student, profile, round, classSection, files, comments, chineseFileType };
+      return { submission, student, profile, round, classSection, files, comments, chineseFileTypes };
     })
     .filter((item): item is TeacherCard => item !== null);
 

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ChineseFileTypeButtons } from "@/components/chinese-file-type-buttons";
 import { ReviewPanel } from "@/components/review-panel";
 import { Shell } from "@/components/shell";
 import { StatusBadge } from "@/components/status-badge";
@@ -34,6 +35,8 @@ export default async function SubmissionDetailsPage({
     (session?.role === "teacher" && data.assignedTeacherIds.includes(session.userId)) ||
     (session?.role === "student" && session.userId === data.student.id);
   const isStudentOwner = session?.role === "student" && session.userId === data.student.id;
+  const canReview =
+    session?.role === "admin" || (session?.role === "teacher" && data.assignedTeacherIds.includes(session.userId));
 
   if (!canView) {
     return (
@@ -105,6 +108,13 @@ export default async function SubmissionDetailsPage({
                   <div className="helper-copy">
                     {file.kind.toUpperCase()} - {file.sizeLabel}
                   </div>
+                  {canReview && data.round.subject === "chinese" ? (
+                    <ChineseFileTypeButtons
+                      defaultType={file.chineseFileType}
+                      fileId={file.id}
+                      submissionId={data.submission.id}
+                    />
+                  ) : null}
                 </div>
                 <div className="inline-actions">
                   {file.previewUrl ? (
@@ -155,13 +165,11 @@ export default async function SubmissionDetailsPage({
                 <p>عناصر واجهة جاهزة للربط مع تحديثات الحالة والدرجة الفعلية.</p>
               </div>
             </div>
-            {session?.role === "admin" || (session?.role === "teacher" && data.assignedTeacherIds.includes(session.userId)) ? (
+            {canReview ? (
               <ReviewPanel
                 submissionId={data.submission.id}
                 defaultStatus={data.submission.status}
                 defaultGrade={data.submission.grade}
-                defaultChineseFileType={data.chineseFileType}
-                subject={data.round.subject}
               />
             ) : (
               <p className="helper-copy">هذه الصفحة للعرض فقط في حساب الطالب أو الزائر. التعديل متاح للمعلم أو المشرف فقط.</p>

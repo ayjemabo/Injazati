@@ -1,5 +1,5 @@
 import { revalidatePath } from "next/cache";
-import { buildChineseFileTypeMarker } from "@/lib/chinese-file-type";
+import { buildChineseFileTypeFileMarker } from "@/lib/chinese-file-type";
 import { createServerSupabaseClient } from "@/lib/supabase";
 import {
   buildManagedStoragePath,
@@ -23,12 +23,18 @@ type RegisterFileInput = {
 };
 
 type ReviewUpdateInput = {
-  chineseFileType?: ChineseFileType | null;
   submissionId: string;
   teacherId: string;
   status: "submitted" | "under_review" | "needs_revision" | "approved";
   grade: number | null;
   comment?: string;
+};
+
+type ChineseFileTypeUpdateInput = {
+  chineseFileType: ChineseFileType | null;
+  fileId: string;
+  submissionId: string;
+  teacherId: string;
 };
 
 type UploadPreparationInput = {
@@ -523,19 +529,46 @@ export async function applyReviewUpdate(input: ReviewUpdateInput) {
     }
   }
 
-  if (input.chineseFileType !== undefined && await isChineseSubmission(supabase, input.submissionId)) {
-    const typeResult = await supabase.from("review_comments").insert({
-      submission_id: input.submissionId,
-      teacher_id: input.teacherId,
-      content: buildChineseFileTypeMarker(input.chineseFileType)
-    });
+  revalidatePath("/maariduna/teacher");
+  revalidatePath("/maariduna/visitors");
+  revalidatePath(`/maariduna/submissions/${input.submissionId}`);
+}
 
-    if (typeResult.error) {
-      throw new Error(typeResult.error.message);
-    }
+export async function applyChineseFileTypeUpdate(input: ChineseFileTypeUpdateInput) {
+  const supabase = createServerSupabaseClient();
+  if (!supabase) {
+    throw new Error("Supabase server environment is not configured.");
+  }
+
+  const fileResult = await supabase
+    .from("submission_files")
+    .select("id")
+    .eq("id", input.fileId)
+    .eq("submission_id", input.submissionId)
+    .maybeSingle();
+
+  if (fileResult.error) {
+    throw new Error(fileResult.error.message);
+  }
+
+  if (!fileResult.data?.id) {
+    throw new Error("الملف المطلوب غير موجود.");
+  }
+
+  if (!await isChineseSubmission(supabase, input.submissionId)) {
+    throw new Error("تحديد نوع الملف متاح لتسليمات الصيني فقط.");
+  }
+
+  const typeResult = await supabase.from("review_comments").insert({
+    submission_id: input.submissionId,
+    teacher_id: input.teacherId,
+    content: buildChineseFileTypeFileMarker(input.fileId, input.chineseFileType)
+  });
+
+  if (typeResult.error) {
+    throw new Error(typeResult.error.message);
   }
 
   revalidatePath("/maariduna/teacher");
-  revalidatePath("/maariduna/visitors");
   revalidatePath(`/maariduna/submissions/${input.submissionId}`);
 }

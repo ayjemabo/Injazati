@@ -5,6 +5,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { SummaryCard } from "@/components/summary-card";
 import { TeacherAssignmentControls } from "@/components/teacher-assignment-controls";
 import { getAppSession } from "@/lib/auth";
+import { getChineseFileTypeLabel } from "@/lib/chinese-file-type";
 import { getDataset } from "@/lib/data";
 import { getTeacherDashboard } from "@/lib/dashboard";
 import { formatDate, getSubjectLabel } from "@/lib/format";
@@ -18,7 +19,7 @@ export const dynamic = "force-dynamic";
 export default async function TeacherPage({
   searchParams
 }: {
-  searchParams?: Promise<{ tab?: string; classId?: string; name?: string }>;
+  searchParams?: Promise<{ tab?: string; classId?: string; name?: string; chineseType?: string }>;
 }) {
   const session = await getAppSession();
   if (!session || session.role !== "teacher") {
@@ -46,24 +47,32 @@ export default async function TeacherPage({
   const activeTab = params?.tab === "controls" ? "controls" : "submissions";
   const selectedClassId = String(params?.classId ?? "").trim();
   const nameQuery = String(params?.name ?? "").trim();
+  const chineseTypeParam = String(params?.chineseType ?? "all");
+  const selectedChineseType =
+    chineseTypeParam === "solution" || chineseTypeParam === "model" ? chineseTypeParam : "all";
   const { teacher, cards } = await getTeacherDashboard(session.userId);
   const dataset = await getDataset();
   const filteredCards = selectedClassId && selectedClassId !== "all"
     ? cards.filter((card) => card.classSection.id === selectedClassId)
     : cards;
+  const chineseFilteredCards = selectedChineseType === "all"
+    ? filteredCards
+    : filteredCards.filter(
+        (card) => card.round.subject === "chinese" && card.chineseFileType === selectedChineseType
+      );
   const teacherAssignments = dataset.teacherAssignments.filter((assignment) => assignment.teacherId === session.userId);
   const teacherClassSections = dataset.classSections.filter((classSection) =>
     teacherAssignments.some((assignment) => assignment.classSectionId === classSection.id)
   );
   const visibleCards = nameQuery
-    ? filteredCards.filter((card) => {
+    ? chineseFilteredCards.filter((card) => {
         const query = nameQuery.toLowerCase();
         return (
           card.student.displayName.toLowerCase().includes(query) ||
           card.student.email.toLowerCase().includes(query)
         );
       })
-    : filteredCards;
+    : chineseFilteredCards;
   const subjects = Array.from(new Set(visibleCards.map((card) => card.round.subject)));
 
   if (!teacher) {
@@ -150,6 +159,14 @@ export default async function TeacherPage({
                 </select>
               </label>
               <label>
+                <span className="helper-copy">فرز الصيني</span>
+                <select className="secondary-button" defaultValue={selectedChineseType} name="chineseType">
+                  <option value="all">كل التسليمات</option>
+                  <option value="solution">{getChineseFileTypeLabel("solution")}</option>
+                  <option value="model">{getChineseFileTypeLabel("model")}</option>
+                </select>
+              </label>
+              <label>
                 <span className="helper-copy">بحث بالأسماء</span>
                 <input
                   className="secondary-button"
@@ -182,6 +199,7 @@ export default async function TeacherPage({
                   <th>الطالب</th>
                   <th>فصل</th>
                   <th>المادة</th>
+                  <th>نوع الصيني</th>
                   <th>الجولة</th>
                   <th>الحالة</th>
                   <th>الدرجة</th>
@@ -201,6 +219,11 @@ export default async function TeacherPage({
                       <div className="helper-copy">{card.classSection.gradeLabel}</div>
                     </td>
                     <td>{getSubjectLabel(card.round.subject)}</td>
+                    <td>
+                      {card.round.subject === "chinese" && card.chineseFileType
+                        ? getChineseFileTypeLabel(card.chineseFileType)
+                        : "-"}
+                    </td>
                     <td>{card.round.title}</td>
                     <td>
                       <StatusBadge status={card.submission.status} />
@@ -216,7 +239,7 @@ export default async function TeacherPage({
                 ))}
                 {visibleCards.length === 0 ? (
                   <tr>
-                    <td className="helper-copy" colSpan={8}>
+                    <td className="helper-copy" colSpan={9}>
                       لا توجد تسليمات مطابقة للفلاتر الحالية.
                     </td>
                   </tr>

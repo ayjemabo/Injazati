@@ -243,6 +243,7 @@ export async function getTeacherDashboard(teacherUserId = "teacher-1") {
   }
 
   type TeacherCard = {
+    chineseFileType: ReturnType<typeof parseChineseFileTypeMarker> | null;
     submission: (typeof submissions)[number];
     student: (typeof users)[number];
     profile: (typeof studentProfiles)[number];
@@ -277,11 +278,18 @@ export async function getTeacherDashboard(teacherUserId = "teacher-1") {
       }
 
       const files = submissionFiles.filter((item) => item.submissionId === submission.id);
+      const chineseFileType =
+        round.subject === "chinese"
+          ? reviewComments
+              .filter((item) => item.submissionId === submission.id)
+              .map((comment) => parseChineseFileTypeMarker(comment.content))
+              .find((value) => value !== undefined) ?? null
+          : null;
       const comments = reviewComments.filter(
         (item) => item.submissionId === submission.id && !isChineseFileTypeMarker(item.content)
       );
 
-      return { submission, student, profile, round, classSection, files, comments };
+      return { submission, student, profile, round, classSection, files, comments, chineseFileType };
     })
     .filter((item): item is TeacherCard => item !== null);
 

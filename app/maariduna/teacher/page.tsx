@@ -55,6 +55,8 @@ export default async function TeacherPage({
   const filteredCards = selectedClassId && selectedClassId !== "all"
     ? cards.filter((card) => card.classSection.id === selectedClassId)
     : cards;
+  const showChineseTypeControls =
+    selectedChineseType !== "all" || filteredCards.some((card) => card.round.subject === "chinese");
   const chineseFilteredCards = selectedChineseType === "all"
     ? filteredCards
     : filteredCards.filter(
@@ -158,14 +160,16 @@ export default async function TeacherPage({
                   ))}
                 </select>
               </label>
-              <label>
-                <span className="helper-copy">فرز الصيني</span>
-                <select className="secondary-button" defaultValue={selectedChineseType} name="chineseType">
-                  <option value="all">كل التسليمات</option>
-                  <option value="solution">{getChineseFileTypeLabel("solution")}</option>
-                  <option value="model">{getChineseFileTypeLabel("model")}</option>
-                </select>
-              </label>
+              {showChineseTypeControls ? (
+                <label>
+                  <span className="helper-copy">فرز الصيني</span>
+                  <select className="secondary-button" defaultValue={selectedChineseType} name="chineseType">
+                    <option value="all">كل التسليمات</option>
+                    <option value="solution">{getChineseFileTypeLabel("solution")}</option>
+                    <option value="model">{getChineseFileTypeLabel("model")}</option>
+                  </select>
+                </label>
+              ) : null}
               <label>
                 <span className="helper-copy">بحث بالأسماء</span>
                 <input
@@ -199,7 +203,7 @@ export default async function TeacherPage({
                   <th>الطالب</th>
                   <th>فصل</th>
                   <th>المادة</th>
-                  <th>نوع الصيني</th>
+                  {showChineseTypeControls ? <th>نوع الصيني</th> : null}
                   <th>الجولة</th>
                   <th>الحالة</th>
                   <th>الدرجة</th>
@@ -219,11 +223,13 @@ export default async function TeacherPage({
                       <div className="helper-copy">{card.classSection.gradeLabel}</div>
                     </td>
                     <td>{getSubjectLabel(card.round.subject)}</td>
-                    <td>
-                      {card.round.subject === "chinese" && card.chineseFileTypes.length > 0
-                        ? card.chineseFileTypes.map((type) => getChineseFileTypeLabel(type)).join("، ")
-                        : "-"}
-                    </td>
+                    {showChineseTypeControls ? (
+                      <td>
+                        {card.round.subject === "chinese" && card.chineseFileTypes.length > 0
+                          ? card.chineseFileTypes.map((type) => getChineseFileTypeLabel(type)).join("، ")
+                          : "-"}
+                      </td>
+                    ) : null}
                     <td>{card.round.title}</td>
                     <td>
                       <StatusBadge status={card.submission.status} />
@@ -239,7 +245,7 @@ export default async function TeacherPage({
                 ))}
                 {visibleCards.length === 0 ? (
                   <tr>
-                    <td className="helper-copy" colSpan={9}>
+                    <td className="helper-copy" colSpan={showChineseTypeControls ? 9 : 8}>
                       لا توجد تسليمات مطابقة للفلاتر الحالية.
                     </td>
                   </tr>

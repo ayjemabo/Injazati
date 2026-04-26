@@ -1,3 +1,4 @@
+import { isChineseFileTypeMarker, parseChineseFileTypeMarker } from "@/lib/chinese-file-type";
 import { getDataset } from "@/lib/data";
 import { createManagedPreviewUrl } from "@/lib/storage";
 import type { SubmissionStatus, SubmissionSubject, TeacherAssignment } from "@/lib/types";
@@ -103,6 +104,11 @@ export async function getSubmissionView(submissionId: string) {
   const assignedTeacherIds = getTeacherIdsForSubmission(teacherAssignments, profile.classSectionId, round.subject);
   const files = submissionFiles.filter((item) => item.submissionId === submissionId);
   const comments = reviewComments.filter((item) => item.submissionId === submissionId);
+  const chineseFileType =
+    round.subject === "chinese"
+      ? comments.map((comment) => parseChineseFileTypeMarker(comment.content)).find((value) => value !== undefined) ?? null
+      : null;
+  const visibleComments = comments.filter((comment) => !isChineseFileTypeMarker(comment.content));
   const filesWithUrls = await Promise.all(
     files.map(async (file) => {
       if (source !== "supabase") {
@@ -121,7 +127,18 @@ export async function getSubmissionView(submissionId: string) {
     })
   );
 
-  return { submission, profile, student, round, classSection, files: filesWithUrls, comments, assignedTeacherIds, source };
+  return {
+    submission,
+    profile,
+    student,
+    round,
+    classSection,
+    files: filesWithUrls,
+    comments: visibleComments,
+    assignedTeacherIds,
+    chineseFileType,
+    source
+  };
 }
 
 export async function canTeacherAccessSubmission(teacherUserId: string, submissionId: string) {
@@ -182,7 +199,9 @@ export async function getStudentDashboard(studentUserId = "student-1") {
       submission,
       round: submissionRounds.find((item) => item.id === submission.roundId),
       files: submissionFiles.filter((item) => item.submissionId === submission.id),
-      comments: reviewComments.filter((item) => item.submissionId === submission.id)
+      comments: reviewComments.filter(
+        (item) => item.submissionId === submission.id && !isChineseFileTypeMarker(item.content)
+      )
     }))
     .filter(
       (
@@ -258,7 +277,9 @@ export async function getTeacherDashboard(teacherUserId = "teacher-1") {
       }
 
       const files = submissionFiles.filter((item) => item.submissionId === submission.id);
-      const comments = reviewComments.filter((item) => item.submissionId === submission.id);
+      const comments = reviewComments.filter(
+        (item) => item.submissionId === submission.id && !isChineseFileTypeMarker(item.content)
+      );
 
       return { submission, student, profile, round, classSection, files, comments };
     })

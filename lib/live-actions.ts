@@ -1,4 +1,5 @@
 import { revalidatePath } from "next/cache";
+import { buildChineseFileTypeMarker } from "@/lib/chinese-file-type";
 import { createServerSupabaseClient } from "@/lib/supabase";
 import {
   buildManagedStoragePath,
@@ -6,7 +7,7 @@ import {
   downloadManagedFile,
   prepareManagedUpload
 } from "@/lib/storage";
-import type { SubmissionSubject } from "@/lib/types";
+import type { ChineseFileType, SubmissionSubject } from "@/lib/types";
 
 type EnsureSubmissionInput = {
   studentProfileId: string;
@@ -22,6 +23,7 @@ type RegisterFileInput = {
 };
 
 type ReviewUpdateInput = {
+  chineseFileType?: ChineseFileType | null;
   submissionId: string;
   teacherId: string;
   status: "submitted" | "under_review" | "needs_revision" | "approved";
@@ -206,6 +208,38 @@ async function markSubmissionSubmitted(submissionId: string) {
   if (updateResult.error) {
     throw new Error(updateResult.error.message);
   }
+}
+
+async function isChineseSubmission(
+  supabase: NonNullable<ReturnType<typeof createServerSupabaseClient>>,
+  submissionId: string
+) {
+  const submissionResult = await supabase
+    .from("submissions")
+    .select("round_id")
+    .eq("id", submissionId)
+    .maybeSingle();
+
+  if (submissionResult.error) {
+    throw new Error(submissionResult.error.message);
+  }
+
+  const roundId = submissionResult.data?.round_id;
+  if (!roundId) {
+    return false;
+  }
+
+  const roundResult = await supabase
+    .from("submission_rounds")
+    .select("subject")
+    .eq("id", roundId)
+    .maybeSingle();
+
+  if (roundResult.error) {
+    throw new Error(roundResult.error.message);
+  }
+
+  return roundResult.data?.subject === "chinese";
 }
 
 async function cleanupFailedUpload(supabase: NonNullable<ReturnType<typeof createServerSupabaseClient>>, submissionId: string, insertedFileIds: string[], storagePaths: string[]) {
@@ -486,6 +520,18 @@ export async function applyReviewUpdate(input: ReviewUpdateInput) {
 
     if (commentResult.error) {
       throw new Error(commentResult.error.message);
+    }
+  }
+
+  if (input.chineseFileType !== undefined && await isChineseSubmission(supabase, input.submissionId)) {
+    const typeResult = await supabase.from("review_comments").insert({
+      submission_id: input.submissionId,
+      teacher_id: input.teacherId,
+      content: buildChineseFileTypeMarker(input.chineseFileType)
+    });
+
+    if (typeResult.error) {
+      throw new Error(typeResult.error.message);
     }
   }
 

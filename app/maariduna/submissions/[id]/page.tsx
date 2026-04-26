@@ -160,6 +160,8 @@ export default async function SubmissionDetailsPage({
                 submissionId={data.submission.id}
                 defaultStatus={data.submission.status}
                 defaultGrade={data.submission.grade}
+                defaultChineseFileType={data.chineseFileType}
+                subject={data.round.subject}
               />
             ) : (
               <p className="helper-copy">هذه الصفحة للعرض فقط في حساب الطالب أو الزائر. التعديل متاح للمعلم أو المشرف فقط.</p>
